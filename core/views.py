@@ -34,12 +34,12 @@ def search(request):
     conta_componentes()
     q=request.GET['q']
     tipodecomponentes = TipoDeComponente.objects.filter(nome__icontains=q).order_by('-id')
+    componentes = Componente.objects.none()
     if (len(tipodecomponentes) == 0):
         componentes = Componente.objects.filter(nome__icontains=q).order_by('-id')
     else:
         for tipodecomponente in tipodecomponentes:
-            componentes = tipodecomponente.componente_set.all()
-    tipodecomponentes = TipoDeComponente.objects.filter(nome__icontains=q).order_by('-id')
+            componentes |= tipodecomponente.componente_set.all()
     categorias = Categoria.objects.all()
     context = {'componentes':componentes, 
                'categorias':categorias, 
