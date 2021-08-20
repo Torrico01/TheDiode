@@ -1,0 +1,414 @@
+body,html{
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #e74c3c !important;
+  }
+
+  .searchbar{
+  margin-bottom: auto;
+  margin-top: auto;
+  height: 60px;
+  background-color: #353b48;
+  border-radius: 30px;
+  padding: 10px;
+  }
+
+  .search_input{
+  color: white;
+  border: 0;
+  outline: 0;
+  background: none;
+  width: 0;
+  caret-color:transparent;
+  line-height: 40px;
+  transition: width 0.4s linear;
+  }
+
+  .searchbar:hover > .search_input{
+  padding: 0 10px;
+  width: 450px;
+  caret-color:red;
+  transition: width 0.4s linear;
+  }
+
+  .searchbar:hover > .search_icon{
+  background: white;
+  color: #e74c3c;
+  }
+
+  .search_icon{
+  height: 40px;
+  width: 40px;
+  float: right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  color:white;
+  text-decoration:none;
+  }
+
+.pagina {
+  font-size: 18px;
+}
+
+.navbar {
+  background-color: #0b7e24;
+  width: 100%;
+  height: 10%;
+}
+
+.textodanavbar {
+  color: black;
+  font-size: 18px;
+}
+
+.divBusca {
+  background-color: #4abdac;
+  border: solid 4px #4abdac;
+  width: 20%;
+  height: 90%;
+}
+
+#txtBusca {
+  float: left;
+  background-color: whitesmoke;
+  padding-left: 5px;
+  font-size: 18px;
+  height: 100%;
+  width: 80%;
+  border-radius: 10px;
+}
+
+#btnBusca {
+  color: black;
+  border: none;
+  height: 101%;
+  width: 20%;
+  padding-left: 4%;
+  font-weight: bold;
+  background: whitesmoke;
+  font-size: 10px;
+  border: solid 1px black;
+  border-radius: 10px;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 5%;
+  width: 100%;
+  background-color: #fc4a1a;
+  color: white;
+  text-align: center;
+  font-size: 18px;
+}
+
+.botao {
+  color: white;
+  padding: 2px 8px;
+  text-align: center;
+  display: inline-block;
+  font-size: 18px;
+  margin: 2px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.botaoproduto {
+  color: white;
+  text-align: center;
+  font-size: 15px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.botao1 {
+  background-color: #4abdac;
+  color: white;
+  border: 2px solid #4abdac;
+  border-radius: 5px;
+}
+
+.botao1:hover {
+  background-color: whitesmoke;
+  color: black;
+}
+
+.botao1laranja {
+  background-color: #f7b733;
+  color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+.botao1laranja:hover {
+  background-color: whitesmoke;
+  color: black;
+}
+
+.botao1vermelho {
+  background-color: #fc4a1a;
+  color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+.botao1vermelho:hover {
+  background-color: whitesmoke;
+  color: black;
+}
+.fundo {
+  background-color: whitesmoke;
+  position: relative;
+  bottom: 0;
+  height: 100%;
+}
+
+.paginamenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  text-align: center;
+  margin-top: 10%;
+}
+.textomenu {
+  color: black;
+  margin-top: 5%;
+  font-size: 20px;
+}
+
+form {
+  padding-top: 10%;
+  background-color: whitesmoke;
+  height: 100%;
+}
+
+/* Full-width inputs */
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Set a style for all buttons */
+button {
+  background-color: #4abdac;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Add a hover effect for buttons */
+button:hover {
+  opacity: 0.8;
+}
+
+/* Extra style for the cancel button (red) */
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #fc4a1a;
+}
+
+/* Add padding to containers */
+.container {
+  padding: 16px;
+}
+
+/* The "Forgot password" text */
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.psw {
+    display: block;
+    float: none;
+  }
+  .cancelbtn {
+    width: 100%;
+  }
+}
+
+.logologin {
+  text-align: center;
+  margin-left: 42.5%;
+  width: 15%;
+}
+
+.gridmodalide {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+}
+
+.gridgeral {
+  position: relative;
+  margin-left: 20%;
+  width: 60%;
+}
+
+.modalidade {
+  position: relative;
+  color: white;
+  width: 80%;
+  height: 75%;
+  margin-top: 10%;
+  text-align: center;
+  padding-top: 0%;
+  justify-self: center;
+}
+
+.gridartigos {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 33.333333%);
+}
+
+.artigo {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+  justify-self: center;
+  margin-top: 10%;
+  width: 85%;
+  border-radius: 5px;
+}
+
+.fotoartigo {
+  height: 65%;
+  margin-bottom: 1%;
+  text-align: center;
+  border: 1px solid black;
+  margin-left: 2%;
+  margin-right: 2%;
+  margin-top: 2%;
+  border-radius: 5px;
+}
+
+.textoartigo {
+  position: relative;
+  color: black;
+  height: 20%;
+  text-align: center;
+  padding-top: 2%;
+  margin-bottom: 3%;
+  margin-left: 2%;
+  margin-right: 2%;
+  justify-self: center;
+}
+
+.gridartigoscesta {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 33.333333%);
+  height: 100%;
+}
+
+.artigocesta {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+  justify-self: center;
+  margin-top: 10%;
+  width: 85%;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.fotoartigocesta {
+  height: 100%;
+  margin-bottom: 1%;
+  text-align: center;
+  border: 1px solid black;
+  margin-left: 2%;
+  margin-right: 2%;
+  margin-top: 2%;
+  border-radius: 5px;
+}
+
+.textoartigocesta {
+  position: relative;
+  color: black;
+  height: 15%;
+  text-align: center;
+  padding-top: 2%;
+  margin-bottom: 3%;
+  margin-left: 2%;
+  margin-right: 2%;
+  justify-self: center;
+}
+
+.disponibilidadeartigo {
+  position: relative;
+  color: black;
+  height: 10%;
+  text-align: center;
+  justify-self: center;
+  font-size: 15px;
+}
+
+.fotoartigoproduto {
+  height: 79%;
+  margin-bottom: 1%;
+  text-align: center;
+  border: 1px solid black;
+  margin-left: 2%;
+  margin-right: 2%;
+  margin-top: 2%;
+  border-radius: 5px;
+}
+
+.textoartigoproduto {
+  position: relative;
+  color: black;
+  height: 15%;
+  text-align: center;
+  padding-top: 2%;
+  margin-bottom: 3%;
+  margin-left: 2%;
+  margin-right: 2%;
+  justify-self: center;
+}
+
+.paginadeproduto {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 50%;
+  margin-left: 25%;
+  align-items: center;
+}
+
+.paginacesta {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 50%;
+  width: 100%;
+  align-items: center;
+}
+
+.gridcesta {
+  position: relative;
+  width: 60%;
+  height: 100%;
+}

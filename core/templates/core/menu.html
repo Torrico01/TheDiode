@@ -1,0 +1,94 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+
+<style>
+    .categorias {
+      display: inline-block;
+      padding: 15px 25px;
+      font-size: 24px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      outline: none;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 3px #999;
+    }
+    
+    .categorias:hover {background-color: #3e8e41}
+    
+    .categorias:active {
+      background-color: #3e8e41;
+      box-shadow: 0 5px #666;
+      transform: translateY(4px);
+    }
+
+</style>
+
+<nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
+    <a class="navbar-brand" href="../">The Diode</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li>
+                <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">Categorias</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    {% for categoria in categorias %} 
+                        <a class="dropdown-item" href="../{{ categoria.id }}">{{ categoria.nome }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0" action="/search">
+            <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+    </div>
+</nav>
+
+<main role="main">
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-3">Lista de Componentes</h1>
+            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que puderem ser integradas.</p>
+            <p><a class="btn btn-primary btn-lg" href="http://tictorslab.blogspot.com/" role="button">Tictor's Lab &raquo;</a></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Example row of columns -->
+        <div class="row">
+            {% for categoria in categorias %} 
+            <div class="col-md-4">  
+                <button class="categorias" onclick="document.location='{{ categoria.id }}'" role="button">{{ categoria.nome }}</button>
+                <p>Quantidade total: {{ categoria.quantidade }}</p>
+            </div>        
+            {% endfor %}
+        </div>
+
+        <hr>
+
+    </div> <!-- /container -->
+
+</main>
+
+<footer class="container">
+    <p>&copy; Tictor's Lab 2021</p>
+</footer>
+{% endblock %}
