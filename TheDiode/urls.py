@@ -24,13 +24,19 @@ from core.views import (
     tipos_de_componentes,
     componentes,
     modificar,
+    criarcategoria,
+    criartipo,
+    criarcomponente
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home, name='home'),
     path('search/', search, name='search'),
+    path('', home, name='home'),
+    path('criar/', criarcategoria, name='criarcategoria'),
     path('<int:id>/', tipos_de_componentes, name='tipos_de_componentes'),
-    path('<int:id_antigo>/<int:id>/', componentes, name='componentes'),
-    path('<int:id_antigo_antigo>/<int:id_antigo>/<int:id>', modificar, name='modificar'),
+    path('<int:id>/criar/', criartipo, name='criartipo'),
+    path('<int:id_categoria>/<int:id>/', componentes, name='componentes'),
+    path('<int:id_categoria>/<int:id>/criar/', criarcomponente, name='criarcomponente'),
+    path('<int:id_categoria>/<int:id_tipo>/<int:id>', modificar, name='modificar'),
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -21,7 +21,7 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="#">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="../../../../{{ categoria.id }}">{{ categoria.nome }}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -38,9 +38,8 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <h1 class="display-3">Search for {{request.GET.q}}</h1>
-            <p>Searching...</p>
-            <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+            <h1 class="display-3">Pesquisa para {{request.GET.q}}</h1>
+            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
         </div>
     </div>
 
@@ -49,12 +48,11 @@
         <div class="row">
             {% for componente in componentes %} 
             <div class="col-md-4">  
-                <h2>{{ componente.nome }}</h2>
-                <p>{{ componente.quantidade }}</p>
+                <h2>{{ componente.tipo }} {{ componente.nome }}</h2>
+                <p>Quantidade: {{ componente.quantidade }}</p>
                 <div class="row">
                     <div>
-                    <button class="btn btn-secondary" href="#" role="button" style="background-color: #1a8844;">+</button>
-                    <button class="btn btn-secondary" href="#" role="button" style="background-color: #991f1f;">-</button>
+                    <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
                     </div>
                 </div>
             </div>
@@ -68,6 +66,6 @@
 </main>
 
 <footer class="container">
-    <p>&copy; Tictor's Lab 2021</p>
+    <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
 </footer>
 {% endblock %}

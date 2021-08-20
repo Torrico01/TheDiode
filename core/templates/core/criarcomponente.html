@@ -5,7 +5,7 @@
 
 {% block content %}
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="../../">The Diode</a>
+    <a class="navbar-brand" href="../../../">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -21,7 +21,7 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../../../{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="../../../../{{ categoria.id }}">{{ categoria.nome }}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -38,28 +38,22 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <h1 class="display-3">{{ tipo_especifico }}</h1>
+            <h1 class="display-3">Criação</h1>
             <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
-        </div>
-        <div class="container">
-            <p><a class="btn btn-primary btn-lg" href="../../{{ id_categoria }}/{{ id_tipo }}/criar/" role="button">Criar componente</a></p>
         </div>
     </div>
 
     <div class="container">
         <!-- Example row of columns -->
         <div class="row">
-            {% for componente in componentes %} 
             <div class="col-md-4">  
-                <h2>{{ componente.nome }}</h2>
-                <p>Quantidade: {{ componente.quantidade }}</p>
-                <div class="row">
-                    <div>
-                    <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
-                    </div>
-                </div>
+                <h2> Criar componente de {{ tipo_especifico.nome }}</h2>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input type="Submit" name="Submit">
+                </form>
             </div>
-            {% endfor %}
         </div>
 
         <hr>

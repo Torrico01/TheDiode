@@ -66,8 +66,10 @@
     <div class="jumbotron">
         <div class="container">
             <h1 class="display-3">Tipos de {{ categoria_especifica }}</h1>
-            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que puderem ser integradas.</p>
-            <p><a class="btn btn-primary btn-lg" href="http://tictorslab.blogspot.com/" role="button">Tictor's Lab &raquo;</a></p>
+            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+        </div>
+        <div class="container">
+            <p><a class="btn btn-primary btn-lg" href="../{{ id_categoria }}/criar/" role="button">Criar tipo</a></p>
         </div>
     </div>
 
@@ -76,7 +78,7 @@
         <div class="row">
             {% for tipodecomponente in tipodecomponentes %} 
             <div class="col-md-4">  
-                <a class="categorias" onclick="document.location='../{{ id_antigo }}/{{ tipodecomponente.id }}'" role="button">{{ tipodecomponente.nome }}</a>
+                <a class="categorias" onclick="document.location='../{{ tipodecomponente.categoria.id }}/{{ tipodecomponente.id }}'" role="button">{{ tipodecomponente.nome }}</a>
                 <p>Quantidade do tipo: {{ tipodecomponente.quantidade }}</p>
             </div>
             {% endfor %}
@@ -89,6 +91,6 @@
 </main>
 
 <footer class="container">
-    <p>&copy; Tictor's Lab 2021</p>
+    <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
 </footer>
 {% endblock %}
