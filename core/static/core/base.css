@@ -412,3 +412,15 @@ span.psw {
   width: 60%;
   height: 100%;
 }
+
+.nomeCCF {
+  background-color: red;
+}
+
+.tipoCCF {
+  background-color: red;
+}
+
+.qtdeCCF {
+  background-color: red;
+}

@@ -4,6 +4,13 @@
 {% block title %} Componentes {% endblock %}
 
 {% block content %}
+
+<style>
+    .criacao {
+    display: table;
+    }
+</style>
+
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
     <a class="navbar-brand" href="../../../">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
@@ -15,15 +22,6 @@
         <ul class="navbar-nav mr-auto">
             <li>
                 <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">Categorias</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../../../../{{ categoria.id }}">{{ categoria.nome }}</a>
-                    {% endfor %}
-                </div>
             </li>
         </ul>
         <form class="form-inline my-2 my-lg-0" action="/search">
@@ -44,16 +42,14 @@
     </div>
 
     <div class="container">
-        <!-- Example row of columns -->
-        <div class="row">
-            <div class="col-md-4">  
-                <h2> Criar componente de {{ tipo_especifico.nome }}</h2>
-                <form action="" method="POST">
-                    {% csrf_token %}
-                    {{ form }}
-                    <input type="Submit" name="Submit">
-                </form>
-            </div>
+        <div class="col">
+            <h2> Criar componente de {{ tipo_especifico.nome }}</h2>
+            <form action="" method="POST">
+                {% csrf_token %}
+                {{ form }}
+                <p></p>
+                <input type="Submit" name="Submit" class="btn btn-outline-success my-2 my-sm-0">
+            </form>
         </div>
 
         <hr>

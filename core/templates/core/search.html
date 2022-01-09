@@ -4,6 +4,13 @@
 {% block title %} Search {% endblock %}
 
 {% block content %}
+
+<style>
+    #btn-modificar {
+    padding-left: 16px;
+    }
+</style>
+
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
     <a class="navbar-brand" href="../">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
@@ -44,17 +51,17 @@
     </div>
 
     <div class="container">
-        <!-- Example row of columns -->
         <div class="row">
             {% for componente in componentes %} 
             <div class="col-md-4">  
                 <h2>{{ componente.tipo }} {{ componente.nome }}</h2>
                 <p>Quantidade: {{ componente.quantidade }}</p>
                 <div class="row">
-                    <div>
-                    <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
+                    <div id="btn-modificar">
+                        <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
                     </div>
                 </div>
+                <p></p>
             </div>
             {% endfor %}
         </div>

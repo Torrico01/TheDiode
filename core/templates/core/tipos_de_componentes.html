@@ -48,7 +48,7 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../../{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="../{{ categoria.id }}">{{ categoria.nome }}</a>
                     {% endfor %}
                 </div>
             </li>

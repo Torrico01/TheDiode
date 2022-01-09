@@ -16,15 +16,6 @@
             <li>
                 <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
             </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">Categorias</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../../../../{{ categoria.id }}">{{ categoria.nome }}</a>
-                    {% endfor %}
-                </div>
-            </li>
         </ul>
         <form class="form-inline my-2 my-lg-0" action="/search">
             <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
@@ -44,17 +35,17 @@
     </div>
 
     <div class="container">
-        <!-- Example row of columns -->
-        <div class="row">
-            <div class="col-md-4">  
+        <div class="col">
+ 
                 <h2>{{ tipo_especifico.nome }} {{ componente_especifico.nome }}</h2>
                 <p>Quantidade atual: {{ componente_especifico.quantidade }}</p>
                 <form action="" method="POST">
                     {% csrf_token %}
                     {{ form }}
-                    <input type="Submit" name="Submit">
+                    <p></p>
+                    <input type="Submit" name="Submit" class="btn btn-outline-success my-2 my-sm-0">
                 </form>
-            </div>
+
         </div>
 
         <hr>
