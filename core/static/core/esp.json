@@ -1,5 +1,55 @@
 {
-    "Sensor 1": {
-        "Valor 1": 123
+    "Funcionalidades": {
+        "Horario": {
+            "Atual": "2145"
+        }
+    },
+    "Resistores 1": {
+        "Resistores 1k": {
+            "ID": "1/2/3",
+            "Proporcionalidade": 1,
+            "Quantidade": 12,
+            "__comentario": "Prop. para saber a ocupacao da celula: 1 -> 1 componente = verde, 2 componentes = laranja, 3 componentes = vermelho ..... 2 -> 1 componente = verde, 2 componentes = verde-alaranjado, 3 componentes = laranja, ..."
+        },
+        "Resistores 2k": {
+            "ID": "1/2/4",
+            "Proporcionalidade": 1,
+            "Quantidade": 4
+        },
+        "Resistores 3k": {
+            "ID": "1/2/5",
+            "Proporcionalidade": 1,
+            "Quantidade": 19
+        },
+        "Resistores 4k": {
+            "ID": "1/2/6",
+            "Proporcionalidade": 1,
+            "Quantidade": 11
+        },
+        "Resistores 5k": {
+            "ID": "1/2/7",
+            "Proporcionalidade": 1,
+            "Quantidade": 3
+        },
+        "Resistores 6k": {
+            "ID": "1/2/8",
+            "Proporcionalidade": 1,
+            "Quantidade": 26
+        },
+        "Resistores 7k": {
+            "ID": "1/2/9",
+            "Proporcionalidade": 1,
+            "Quantidade": 20
+        },
+        "Resistores 8k": {
+            "ID": "1/2/10",
+            "Proporcionalidade": 1,
+            "Quantidade": 15
+        },
+        "Resistores 9k": {
+            "ID": "1/2/11",
+            "Proporcionalidade": 1,
+            "Quantidade": 12
+        }
     }
 }

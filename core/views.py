@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.urls import reverse
+from datetime import datetime
 import json
 
 from .forms import CriarCategoriaForm, CriarTipoForm, CriarComponenteForm, ComponenteForm
@@ -40,6 +41,7 @@ def visitor_ip_address(request):
 @csrf_exempt
 def home(request):
     ip = visitor_ip_address(request)
+
     if request.method == "POST" and ip == esp8266_ip:
         # Reads json request data
         s = request.body.decode('utf8')
@@ -52,13 +54,22 @@ def home(request):
 
     if request.method == "GET" and ip == esp8266_ip:
         # Reads .json file as dictionary
-        f = open("core/static/core/esp.json")
-        out_data = json.load(f)
+        jsonFile = open("core/static/core/esp.json")
+        dictEspConfig = json.load(jsonFile)
+
+        # Gets current time and updates .json file
+        horaAtual = datetime.now().strftime("%H%M")
+        dictEspConfig["Funcionalidades"]["Horario"]["Atual"] = horaAtual
+        jsonEspConfig = json.dumps(dictEspConfig, indent=4, sort_keys=True)
+        with open("core/static/core/esp.json", "w") as jsonFile:
+            jsonFile.write(jsonEspConfig)
+
         print("Out ESP Configuration Data:")
-        print(json.dumps(out_data, indent=4, sort_keys=True))
+        print(jsonEspConfig)
+        #out_hora = {"hora":datetime.now().strftime("%H%M")}
 
         # Returns json dictionary
-        return JsonResponse(out_data)
+        return JsonResponse(dictEspConfig)
 
     categorias = Categoria.objects.order_by('-quantidade')
     context = {'categorias':categorias}
