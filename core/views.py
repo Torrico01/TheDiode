@@ -14,21 +14,46 @@ esp8266_ip = "192.168.15.12"
 
 def conta_componentes():
     categorias = Categoria.objects.all()
-    count = 0
     count_total = 0
+    count = 0
+
     for categoria in categorias:
         tipodecomponentes_filtrados = categoria.tipodecomponente_set.all()
+
         for tipodecomponente in tipodecomponentes_filtrados:
             componentes_filtrados = tipodecomponente.componente_set.all()
+
             for componente_filtrado in componentes_filtrados:
                 count += componente_filtrado.quantidade
+
             tipodecomponente.quantidade = count
             tipodecomponente.save()
             count_total += count
             count = 0
+            
         categoria.quantidade = count_total
         categoria.save()
         count_total = 0
+
+def update_config():
+    jsonFile = open("core/static/core/esp.json")
+    dictEspConfig = json.load(jsonFile)
+
+    for categoria in dictEspConfig:
+        if categoria != "Funcionalidades":
+            for componente in dictEspConfig[categoria]:
+                try:
+                    componente_id = dictEspConfig[categoria][componente]["ID"].split("/")[2]
+                    componente_obj = Componente.objects.get(id=int(componente_id))
+                    dictEspConfig[categoria][componente]["Quantidade"] = componente_obj.quantidade
+                except:
+                    continue
+
+    jsonEspConfig = json.dumps(dictEspConfig, indent=4, sort_keys=True)
+    with open("core/static/core/esp.json", "w") as jsonFile:
+        jsonFile.write(jsonEspConfig)
+                
+
 
 def visitor_ip_address(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -41,13 +66,18 @@ def visitor_ip_address(request):
 @csrf_exempt
 def home(request):
     ip = visitor_ip_address(request)
+    #update_config()
 
     if request.method == "POST" and ip == esp8266_ip:
         # Reads json request data
         s = request.body.decode('utf8')
         in_data = json.loads(s)
+        jsonEspConfig = json.dumps(in_data, indent=4, sort_keys=True)
+        with open("core/static/core/esp.json", "w") as jsonFile:
+            jsonFile.write(jsonEspConfig)
+
         print("In ESP Configuration Data:")
-        print(json.dumps(in_data, indent=4, sort_keys=True))
+        print(jsonEspConfig)
 
         # Returns empty json dictionary
         return JsonResponse({})
@@ -64,8 +94,8 @@ def home(request):
         with open("core/static/core/esp.json", "w") as jsonFile:
             jsonFile.write(jsonEspConfig)
 
-        print("Out ESP Configuration Data:")
-        print(jsonEspConfig)
+        #print("Out ESP Configuration Data:")
+        #print(jsonEspConfig)
         #out_hora = {"hora":datetime.now().strftime("%H%M")}
 
         # Returns json dictionary
@@ -119,6 +149,7 @@ def modificar(request, id_categoria, id_tipo, id):
         if form.is_valid():
             form.save()
             conta_componentes()
+            update_config()
             return redirect('../../' + str(id_categoria) + '/' + str(id_tipo))
     context = {'form': form,
                'componente_especifico': componente_especifico,
