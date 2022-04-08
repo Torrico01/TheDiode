@@ -115,14 +115,20 @@ void init_wifi(){
   //Serial.println();
   //Serial.print("Connecting to ");
   //Serial.println(ssid);
+  wifi_connection_screen(0);
   /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
      would try to act as both a client and an access-point and could cause
      network-issues with your other WiFi-devices on your WiFi-network. */
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   byte wifi_tries = 0;
   while (WiFi.status() != WL_CONNECTED and wifi_tries < 42) {
     delay(500);
+    
+    if (wifi_tries < 1) wifi_connection_screen(1);
+    else if (wifi_tries < 3) wifi_connection_screen(2);
+    else if (wifi_tries < 5) wifi_connection_screen(3);  
     //Serial.print(".");
     wifi_tries++;
   }
@@ -280,45 +286,6 @@ String get_slave_update(const int addr, const int bytes) {
 }
 
 // ================================================
-// ============= Rotary switch loops ==============
-// ================================================
-
-// single click
-void click(Button2& btn) {
-  btn_click = true;
-}
-
-// long click
-void resetPosition(Button2& btn) {
-  btn_reset = true;
-}
-
-void button_changes() {
-  if (btn_reset == true) { // Reset press
-    if (selectionMode > 0) selectionMode--;
-    //Serial.print("selectionMode: ");
-    //Serial.println(selectionMode);
-  
-    send_tries = 0;
-    send_selection_mode = true;
-    //Serial.println("Reset!");
-    testdrawchar();
-  }
-  else if (btn_click == true) { // Click
-    if (selectionMode == 3) send_server_update = true;
-    if (selectionMode < 3) {
-      selectionMode++;
-      send_selection_mode = true;
-    }
-    send_tries = 0;
-    //Serial.print("selectionMode: ");
-    //Serial.println(selectionMode);
-    //Serial.println("Click!");
-    testdrawchar();
-  }
-}
-
-// ================================================
 // ======= Specific slave update functions ========
 // ================================================
 
@@ -366,6 +333,45 @@ String post_all_quantities(String qtt_arr) {
 String post_all_limits(String lim_arr, int module) {
   post_slave_update_from_esp(lim_arr, id_Lim, modules[module].addr);
   return get_slave_update(modules[module].addr, 20);
+}
+
+// ================================================
+// ============= Rotary switch loops ==============
+// ================================================
+
+// single click
+void click(Button2& btn) {
+  btn_click = true;
+}
+
+// long click
+void resetPosition(Button2& btn) {
+  btn_reset = true;
+}
+
+void button_changes() {
+  if (btn_reset == true) { // Reset press
+    if (selectionMode > 0) selectionMode--;
+    //Serial.print("selectionMode: ");
+    //Serial.println(selectionMode);
+  
+    send_tries = 0;
+    send_selection_mode = true;
+    //Serial.println("Reset!");
+    update_screen_values();
+  }
+  else if (btn_click == true) { // Click
+    if (selectionMode == 3) send_server_update = true;
+    if (selectionMode < 3) {
+      selectionMode++;
+      send_selection_mode = true;
+    }
+    send_tries = 0;
+    //Serial.print("selectionMode: ");
+    //Serial.println(selectionMode);
+    //Serial.println("Click!");
+    update_screen_values();
+  }
 }
 
 // ================================================
@@ -441,28 +447,52 @@ void generic_config_scan(JSONVar jsonConfig) {
 }
 
 // ================================================
-// ================== Main loops ==================
+// ================== OLED screen =================
 // ================================================
 
-void testdrawchar(void) {
+void wifi_connection_screen(byte status) {
   display.clearDisplay();
-
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(SSD1306_WHITE); // Draw white text
   display.setCursor(0, 0);     // Start at top-left corner
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
 
-  display.print("Modo de selecao: ");
+  display.print("Conexao WiFi..");
+  
+  //display.drawRect(x0, y0, x1 -> 128, y1 -> 64, SSD1306_WHITE);
+  display.drawRect(16,16,96,32,SSD1306_WHITE);
+
+  // Infill
+  byte bar = map(status,0,3,23,92) ;
+  display.fillRect(18,18,bar,28,SSD1306_WHITE);
+
+  display.display();
+}
+
+void update_screen_values(void) {
+  display.clearDisplay();
+
+  display.setTextSize(2);      // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0, 0);     // Start at top-left corner
+  display.cp437(true);         // Use full 256 char 'Code Page 437' font
+
+  display.print("Modo: ");
   display.println(selectionMode);
-  display.print("Led selecionado: ");
+  display.print("LED: ");
   display.println(selectedLed);
 
   display.display();
 }
 
+// ================================================
+// ================== Main loops ==================
+// ================================================
+
+
 void setup() {
   //Serial.begin(115200);
-  //while (!Serial) ;
+  //while (!//Serial) ;
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC)) {
@@ -474,9 +504,7 @@ void setup() {
   display.display();
   delay(2000); // Pause for 2 seconds
   // Clear the buffer
-  display.clearDisplay();
-  // Draw a single pixel in white
-  testdrawchar();
+  display.clearDisplay();  
 
   // Initialize pin change interrupt on both rotary encoder pins
   //attachInterrupt(digitalPinToInterrupt(ROTARY_PIN1), rotaryInterrupt, CHANGE);
@@ -488,6 +516,9 @@ void setup() {
   
   // Connect to Wifi
   init_wifi(); 
+
+  // Update screen
+  update_screen_values();
 
   // Módulos
   Wire.begin(SDA_I2C_PIN, SCL_I2C_PIN); /* join i2c bus with SDA=D1 and SCL=D2 of NodeMCU */
@@ -622,7 +653,7 @@ void loop() {
     String return_msg = post_all_quantities(quantity_arr);
     
     send_server_update = false;
-    testdrawchar();
+    update_screen_values();
   }
 
 }
@@ -661,7 +692,7 @@ void rotaryInterrupt() {
         //Serial.print(F("Selected module: "));
         //Serial.println(selectedModule);
 
-        testdrawchar();
+        update_screen_values();
     }
     if (selectionMode == 2 and selectedLedLast != selectedLed) {
         send_selected_led = true;
@@ -672,7 +703,7 @@ void rotaryInterrupt() {
         
         selectedLedLast = selectedLed;
         
-        testdrawchar();
+        update_screen_values();
     }
     if (selectionMode == 3 and selectedQttLast != selectedQuantity) {
         send_selected_quantity = true;
@@ -683,6 +714,6 @@ void rotaryInterrupt() {
         
         selectedQttLast = selectedQuantity;
         
-        testdrawchar();
+        update_screen_values();
     }
 }

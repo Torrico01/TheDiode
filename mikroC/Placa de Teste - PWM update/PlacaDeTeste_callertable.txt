@@ -1,0 +1,24 @@
+main
+	initI2c
+	initPwm
+		PWM1_Init
+		PWM2_Init
+		PWM1_Start
+		PWM2_Start
+		PWM1_Set_Duty
+			Mul_16X16_U
+		PWM2_Set_Duty
+			Mul_16X16_U
+	initPinos
+	Mul_16X16_U
+	map
+		Mul_16X16_U
+		Div_16x16_S
+			Div_16x16_S_L
+	PWM1_Set_Duty
+		Mul_16X16_U
+	PWM2_Set_Duty
+		Mul_16X16_U
+	setColor
+	____DoICP
+interrupt

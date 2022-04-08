@@ -1,0 +1,11 @@
+0	1	mikroCPIC1618.exe -MSF -DBG -pP16F873 -DL -O11111114 -fo20 -N"C:\Users\ticto\Documents\Projetos\Projetos mikroC\Painel Modular\Placa de Teste\PlacaDeTeste.mcppi" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"C:\Users\ticto\Documents\Projetos\Projetos mikroC\Painel Modular\Placa de Teste\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" "PlacaDeTeste.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_PWM_c21.mcl"	 
+hint: 0	1139	Available RAM: 176 [bytes], Available ROM: 4096 [bytes]	 
+diagnostics: 0	122	Compilation Started	PlacaDeTeste.c
+diagnostics: 373	123	Compiled Successfully	PlacaDeTeste.c
+diagnostics: 0	127	All files Compiled in 125 ms	 
+hint: 0	1144	Used RAM (bytes): 145 (82%)  Free RAM (bytes): 31 (18%)	Used RAM (bytes): 145 (82%)  Free RAM (bytes): 31 (18%)
+hint: 0	1144	Used ROM (program words): 1468 (36%)  Free ROM (program words): 2628 (64%)	Used ROM (program words): 1468 (36%)  Free ROM (program words): 2628 (64%)
+diagnostics: 0	125	Project Linked Successfully	PlacaDeTeste.mcppi
+diagnostics: 0	128	Linked in 31 ms	 
+diagnostics: 0	129	Project 'PlacaDeTeste.mcppi' completed: 171 ms	 
+diagnostics: 0	103	Finished successfully: 02 abr 2022, 13:05:38	PlacaDeTeste.mcppi
