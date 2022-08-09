@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 from core.views import (
     home,
@@ -39,4 +41,5 @@ urlpatterns = [
     path('<int:id_categoria>/<int:id>/', componentes, name='componentes'),
     path('<int:id_categoria>/<int:id>/criar/', criarcomponente, name='criarcomponente'),
     path('<int:id_categoria>/<int:id_tipo>/<int:id>', modificar, name='modificar'),
+    path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

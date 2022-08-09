@@ -1,0 +1,3 @@
+cd C:\Program Files\mosquitto
+
+mosquitto_pub -t "PainelArmazenamentoModular/Display" -m 10.111

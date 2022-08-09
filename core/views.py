@@ -5,12 +5,16 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.urls import reverse
 from datetime import datetime
-import json
 
 from .forms import CriarCategoriaForm, CriarTipoForm, CriarComponenteForm, ComponenteForm
 from componente.models import TipoDeComponente, Categoria, Componente
+from core.config_variables import MQTT_SUB_RUN
+
+import json, os
 
 esp8266_ip = "192.168.15.12"
+
+os.startfile(MQTT_SUB_RUN)
 
 def conta_componentes():
     categorias = Categoria.objects.all()
@@ -63,9 +67,11 @@ def visitor_ip_address(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+
 @csrf_exempt
 def home(request):
     ip = visitor_ip_address(request)
+    print(ip)
     #update_config()
 
     if request.method == "POST" and ip == esp8266_ip:

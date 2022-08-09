@@ -3,8 +3,7 @@
 import os
 import sys
 
-
-def main():
+def run_server():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TheDiode.settings')
     try:
@@ -17,6 +16,11 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
+def run_mqtt():
+    os.startfile("C:\\Users\\ticto\\Documents\\Projetos\\Projetos Django\\The Diode v2\\TheDiode\\core\\mqtt_sub_run.bat")
+
+def main():
+    run_server()
 
 if __name__ == '__main__':
     main()

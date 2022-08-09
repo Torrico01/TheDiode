@@ -26,7 +26,7 @@ SECRET_KEY = 'j0a*-4($(fry^yu=bvn-i!_y$-ikq^h39#=!av24r1dq72=%x0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.15.8','192.168.15.12']
+ALLOWED_HOSTS = ['*'] # ['192.168.15.8','192.168.15.12']
 
 
 # Application definition
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     # My apps
     'core',
     'componente',
+    'subscriptions',
 
     'django.contrib.admin',
     'django.contrib.auth',

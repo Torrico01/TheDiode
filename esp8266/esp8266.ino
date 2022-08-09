@@ -12,6 +12,8 @@
 #include <Wire.h>
 #include <SPI.h>
 
+#include <PubSubClient.h>
+
 #include "Button2.h";
 
 #include <ErriezRotaryFullStep.h>
@@ -34,18 +36,18 @@
 
 // Definições de pinagem
 /* I2C */
-#define SDA_I2C_PIN D1
-#define SCL_I2C_PIN D2
+//#define SDA_I2C_PIN D1
+//#define SCL_I2C_PIN D2
 /* Encoder */
-#define ROTARY_PIN1       3  // Pino S1 -> CLK
-#define ROTARY_PIN2       D4//9  //  Pino S2 -> DT
-#define ROTARY_BUTTON_PIN D0//3//10 //  Pino S3 -> SW
+#define ROTARY_PIN1       3  // Pino RX -> CLK
+#define ROTARY_PIN2       D4 // -> DT
+#define ROTARY_BUTTON_PIN D0 // -> SW
 /* Display */
-#define OLED_MOSI  D7
-#define OLED_CLK   D5
+#define OLED_MOSI  D7 // D1
+#define OLED_CLK   D5 // D0
 #define OLED_DC    D3
 #define OLED_CS    D8
-#define OLED_RESET 1//D4
+#define OLED_RESET 1 // TX
 
 // Outras definições
 #define SEND_TENTATIVES   1
@@ -76,8 +78,8 @@ typedef struct
   int addr;
 }  moduleProprieties;
 // Ordem: esquerda para direita, de cima para baixo
-moduleProprieties modules[2] = { {"Capacitor eletrolitico 1", 0x58},  // 0xB0 >>> 0x58
-                                 {"", 0x00} }; 
+moduleProprieties modules[2] = { {"Capacitor eletrolitico 1", 0x22},   // 0x44 (Pic) >>> 0x22 // Placa 1 (mais antiga)
+                                 {"Capacitor eletrolitico 2", 0x59} }; // 0xB2 (Pic) >>> 0x59 // Placa 2 (mais recente)
 const int numModules = sizeof(modules) / sizeof(modules[0]);
 
 // Variáveis específicas e genéricas
@@ -105,16 +107,13 @@ void rotaryInterrupt();
 
 // Inicia variáveis de tempo
 unsigned long millisTarefa1 = millis();
+unsigned long update_time = 0; // Inicia em 0 para atualizar imediatamente, depois muda para o intervalo
 
 // ================================================
 // ======== Wifi and I2C Initializations ==========
 // ================================================
 void init_wifi(){
   // We start by connecting to a WiFi network
-  //Serial.println();
-  //Serial.println();
-  //Serial.print("Connecting to ");
-  //Serial.println(ssid);
   wifi_connection_screen(0);
   /* Explicitly set the ESP8266 to be a WiFi-client, otherwise, it by default,
      would try to act as both a client and an access-point and could cause
@@ -123,29 +122,23 @@ void init_wifi(){
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   byte wifi_tries = 0;
+  byte status = 1;
   while (WiFi.status() != WL_CONNECTED and wifi_tries < 42) {
     delay(500);
     
-    if (wifi_tries < 1) wifi_connection_screen(1);
-    else if (wifi_tries < 3) wifi_connection_screen(2);
-    else if (wifi_tries < 5) wifi_connection_screen(3);  
-    //Serial.print(".");
+    if (wifi_tries%2 == 0) {
+      wifi_connection_screen(status);
+      status++;
+      if (status == 4) status = 1;
+    }
+ 
     wifi_tries++;
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
-    //Serial.println("");
-    //Serial.println("WiFi connected");
-    //Serial.println("IP address: ");
-    //Serial.println(WiFi.localIP());
-  
-    //Serial.print("Connecting to ");
-    //Serial.println(serverName);
-  }
+  if (WiFi.status() == WL_CONNECTED) wifi_connection_screen(4); // Status 4 = Conectado
   else {
-    //Serial.println("");
-    //Serial.println("Could not connect to WiFi");
-    //Serial.println("");
+    wifi_connection_screen(5); // Status 5 = Erro de conexão
+    for (;;); // Trava a execução
   }
 }
 
@@ -153,11 +146,9 @@ void establish_i2c() {
   JSONVar jsonConfig = get_server_update();
   int module;
 
-  for (module = 0; module < numModules-1; module++) { // TIRAR O "-1" DO FOR QUANDO TIVER O SEGUNDO MÓDULO
+  for (module = 0; module < numModules; module++) {
     String limit_arr = get_limit_array(jsonConfig, module);
     String return_msg = post_all_limits(limit_arr, module);
-    //Serial.print("I2C Response Message: ");
-    //Serial.println(return_msg);
   }
 
 }
@@ -173,7 +164,7 @@ JSONVar get_server_update() {
   return jsonConfig;
 }
 
-String httpGETRequest(const char* serverName) {    
+String httpGETRequest(const char* serverName) {  
   // Your IP address with path or Domain name with URL path 
   http.begin(client, serverName);
   
@@ -183,13 +174,11 @@ String httpGETRequest(const char* serverName) {
   String payload = "{}"; 
   
   if (httpResponseCode>0) {
-    //Serial.print("HTTP Response code: ");
-    //Serial.println(httpResponseCode);
-    payload = http.getString();
+    payload = http.getString(); 
   }
   else {
-    //Serial.print("Error code: ");
-    //Serial.println(httpResponseCode);
+    server_connection_screen(2); // Não conectado
+    for(;;);
   }
   // Free resources
   http.end();
@@ -212,8 +201,6 @@ void httpPOSTRequest(const char* serverName, String jsonString) {
   http.addHeader("Content-Type", "application/json");
   
   int httpResponseCode = http.POST(jsonString);
-  //Serial.print("HTTP Response code: ");
-  //Serial.println(httpResponseCode);
 
   http.end();
 }
@@ -223,23 +210,18 @@ void httpPOSTRequest(const char* serverName, String jsonString) {
 // =========================================================
 void post_slave_update_from_server(JSONVar jsonSlaveUpdate, String word1, String word2, String word3, char* msg_id, const int addr) {
   String msg;
-  
-  // Começo da transmissão I2C com o escravo
-  Wire.beginTransmission(addr);
 
   // Transforma a String da informação a ser enviada em Char
   msg = JSON.stringify(jsonSlaveUpdate[word1][word2][word3]);
-  char buffer[20];
-  msg.toCharArray(buffer, 20);
+  msg = msg_id + msg + msg_id;
+  char buff[22];
+  msg.toCharArray(buff, 22);
 
-  //Serial.print("Buffer de envio: ");
-  //Serial.print(buffer);
-  //Serial.println(".");
+  // Começo da transmissão I2C com o escravo
+  Wire.beginTransmission(addr);
 
   // Envia identificador da mensagem e a mensagem
-  Wire.write(msg_id);
-  Wire.write(buffer);
-  Wire.write(msg_id);
+  Wire.write(buff);
 
   // Fim da transmissão I2C com o escravo
   Wire.endTransmission();
@@ -248,21 +230,16 @@ void post_slave_update_from_server(JSONVar jsonSlaveUpdate, String word1, String
 }
 
 void post_slave_update_from_esp(String pkg, char* msg_id, const int addr) {
+  // Buffer
+  pkg = msg_id + pkg + msg_id;
+  char buff[22];
+  pkg.toCharArray(buff, 22);
+
   // Começo da transmissão I2C com o escravo
   Wire.beginTransmission(addr);
-
-  // Buffer
-  char buffer[20];
-  pkg.toCharArray(buffer, 20);
-
-  //Serial.print("Buffer de envio (esp): ");
-  //Serial.print(buffer);
-  //Serial.println(".");
   
   // Envia identificador da mensagem e a mensagem
-  Wire.write(msg_id);
-  Wire.write(buffer);
-  Wire.write(msg_id);
+  Wire.write(buff);
 
   // Fim da transmissão I2C com o escravo
   Wire.endTransmission();
@@ -289,50 +266,53 @@ String get_slave_update(const int addr, const int bytes) {
 // ======= Specific slave update functions ========
 // ================================================
 
-String post_current_time(JSONVar jsonConfig, const int addr) {
-  //Serial.print("Hora recebida do servidor: ");
-  //Serial.print(jsonConfig["Funcionalidades"]["Horario"]["Atual"]);
-  //Serial.println(".");
-  
+String post_current_time(JSONVar jsonConfig, int module) { 
   // Envia hora para o escravo e retorna
-  post_slave_update_from_server(jsonConfig, "Funcionalidades", "Horario", "Atual", id_Hora, addr);
-  return get_slave_update(modules[selectedModule-1].addr, 6);
+  post_slave_update_from_server(jsonConfig, "Funcionalidades", "Horario", "Atual", id_Hora, modules[module].addr);
+  //return get_slave_update(modules[selectedModule-1].addr, 6);
+  return "";
 }
 
 String post_deselect() {
-  String msg = "0000";
+  String msg = "0";
   post_slave_update_from_esp(msg, id_Slct, modules[selectedModuleLast-1].addr);
-  return get_slave_update(modules[selectedModuleLast-1].addr, 6);
+  //return get_slave_update(modules[selectedModuleLast-1].addr, 6);
+  return "";
 }
 
 String post_selection_mode() {
-  String msg = String(selectionMode) + "000";
+  String msg = String(selectionMode);
   post_slave_update_from_esp(msg, id_Slct, modules[selectedModule-1].addr);
-  return get_slave_update(modules[selectedModule-1].addr, 6);
+  //return get_slave_update(modules[selectedModule-1].addr, 6);
+  return "";
 }
 
 String post_selected_led() {
-  String msg = String(selectedLed) + "000";
+  String msg = String(selectedLed);
   post_slave_update_from_esp(msg, id_Comp, modules[selectedModule-1].addr);
-  return get_slave_update(modules[selectedModule-1].addr, 6);
+  //return get_slave_update(modules[selectedModule-1].addr, 6);
+  return "";
 }
 
 String post_quantity(int current_quantity) {
-  String msg = "0000";
-  if (current_quantity < 10) msg = "0" + String(current_quantity) + "00";
-  else if (current_quantity < 100) msg = String(current_quantity) + "00";
+  String msg = "00";
+  if (current_quantity < 10) msg = "0" + String(current_quantity);
+  else if (current_quantity < 100) msg = String(current_quantity);
   post_slave_update_from_esp(msg, id_Qtd, modules[selectedModule-1].addr);
-  return get_slave_update(modules[selectedModule-1].addr, 6);
+  //return get_slave_update(modules[selectedModule-1].addr, 6);
+  return "";
 }
 
-String post_all_quantities(String qtt_arr) {
-  post_slave_update_from_esp(qtt_arr, id_AQtd, modules[selectedModule-1].addr);
-  return get_slave_update(modules[selectedModule-1].addr, 20);
+String post_all_quantities(String qtt_arr, int module) {
+  post_slave_update_from_esp(qtt_arr, id_AQtd, modules[module].addr);
+  //return get_slave_update(modules[selectedModule-1].addr, 20);
+  return "";
 }
 
 String post_all_limits(String lim_arr, int module) {
   post_slave_update_from_esp(lim_arr, id_Lim, modules[module].addr);
-  return get_slave_update(modules[module].addr, 20);
+  //return get_slave_update(modules[module].addr, 20);
+  return "";
 }
 
 // ================================================
@@ -352,12 +332,9 @@ void resetPosition(Button2& btn) {
 void button_changes() {
   if (btn_reset == true) { // Reset press
     if (selectionMode > 0) selectionMode--;
-    //Serial.print("selectionMode: ");
-    //Serial.println(selectionMode);
   
     send_tries = 0;
     send_selection_mode = true;
-    //Serial.println("Reset!");
     update_screen_values();
   }
   else if (btn_click == true) { // Click
@@ -367,9 +344,6 @@ void button_changes() {
       send_selection_mode = true;
     }
     send_tries = 0;
-    //Serial.print("selectionMode: ");
-    //Serial.println(selectionMode);
-    //Serial.println("Click!");
     update_screen_values();
   }
 }
@@ -378,17 +352,17 @@ void button_changes() {
 // =============== Other functions ================
 // ================================================
 
-String get_quantity_array(JSONVar jsonConfig) {
+String get_quantity_array(JSONVar jsonConfig, int module) {
   String quantidade_str = "000000000000000000";
   String categoria, componente, quantidade;
   int j, compartimento;
 
   for (j=0; j<9; j++) {
-    componente = JSON.stringify(jsonConfig[modules[selectedModule-1].type].keys()[j]);
+    componente = JSON.stringify(jsonConfig[modules[module].type].keys()[j]);
     componente = componente.substring(1,componente.length()-1);
 
     compartimento = componente.substring(0,2).toInt();
-    quantidade = JSON.stringify(jsonConfig[modules[selectedModule-1].type][componente]["Quantidade"]);
+    quantidade = JSON.stringify(jsonConfig[modules[module].type][componente]["Quantidade"]);
     if (quantidade.toInt() < 10) {
       quantidade_str[2*compartimento-2] = '0';
       quantidade_str[2*compartimento-1] = quantidade[0];
@@ -457,14 +431,41 @@ void wifi_connection_screen(byte status) {
   display.setCursor(0, 0);     // Start at top-left corner
   display.cp437(true);         // Use full 256 char 'Code Page 437' font
 
-  display.print("Conexao WiFi..");
-  
-  //display.drawRect(x0, y0, x1 -> 128, y1 -> 64, SSD1306_WHITE);
-  display.drawRect(16,16,96,32,SSD1306_WHITE);
+  if (status < 4) {
+    display.print("Conectando no WiFi");
+    display.drawRect(16,16,96,32,SSD1306_WHITE); //display.drawRect(x0, y0, x1 -> 128, y1 -> 64, SSD1306_WHITE);
+    // Infill
+    byte bar = map(status,0,3,23,92) ;
+    display.fillRect(18,18,bar,28,SSD1306_WHITE);
+  }
+  else if (status == 4) {
+    display.setTextColor(SSD1306_INVERSE);
+    display.print("Wifi conectado!");
+  }
+  else if (status == 5) {
+    display.setTextColor(SSD1306_INVERSE);
+    display.print("Erro de conexao WiFi");
+  }
 
-  // Infill
-  byte bar = map(status,0,3,23,92) ;
-  display.fillRect(18,18,bar,28,SSD1306_WHITE);
+  display.display();
+}
+
+void server_connection_screen(byte status) {
+  display.clearDisplay();
+  display.setTextSize(1);      // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0, 0);     // Start at top-left corner
+  display.cp437(true);         // Use full 256 char 'Code Page 437' font
+
+  display.println("Conectando no Server");
+  if (status == 1) {
+    display.setTextColor(SSD1306_INVERSE);
+    display.print("Server conectado!");
+  }
+  else if (status == 2) {
+    display.setTextColor(SSD1306_INVERSE);
+    display.print("Erro de conexao com o servidor");
+  }
 
   display.display();
 }
@@ -496,7 +497,6 @@ void setup() {
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC)) {
-    //Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
   // Show initial display buffer contents on the screen --
@@ -515,13 +515,24 @@ void setup() {
   btnRotary.setLongClickHandler(resetPosition);
   
   // Connect to Wifi
-  init_wifi(); 
+  init_wifi();
+  delay(500);
+
+  // Connect to Server
+  server_connection_screen(0);// Conectando no Servidor
+  String payload = httpGETRequest(serverName);
+  if (payload == "{}") {
+    server_connection_screen(2); // Erro de conexão
+    for(;;); // Trava a execução
+  }
+  else server_connection_screen(1); // Server conectado
+  delay(500);
 
   // Update screen
   update_screen_values();
 
   // Módulos
-  Wire.begin(SDA_I2C_PIN, SCL_I2C_PIN); /* join i2c bus with SDA=D1 and SCL=D2 of NodeMCU */
+  Wire.begin(SDA, SCL); /* join i2c bus with SDA=D1 and SCL=D2 of NodeMCU */
   //Wire.setClock(100000);
 
   // Establish I2C connection with every slave and send quantities limits
@@ -544,19 +555,16 @@ void loop() {
 
   rotaryInterrupt();
 
-  if((millis() - millisTarefa1) > 10000){
+  if((millis() - millisTarefa1) > update_time){
      JSONVar jsonConfig = get_server_update();
-     quantity_arr = get_quantity_array(jsonConfig);
-     String return_msg = post_all_quantities(quantity_arr);
-
-     return_msg = post_current_time(jsonConfig, modules[0].addr);     
-     //Serial.print("Hora do escravo: ");
-     //Serial.print(return_msg[1]);
-     //Serial.print(return_msg[2]);
-     //Serial.print(return_msg[3]);
-     //Serial.print(return_msg[4]);
-     //Serial.println(".");
-
+     String return_msg;
+     int module;    
+     for (module = 0; module < numModules; module++) {
+      quantity_arr = get_quantity_array(jsonConfig, module);
+      return_msg = post_all_quantities(quantity_arr, module);
+      return_msg = post_current_time(jsonConfig, module);
+     }  
+     update_time = 6000;
      millisTarefa1 = millis();
   }
 
@@ -604,14 +612,14 @@ void loop() {
   }
 
   if (send_selected_quantity and send_tries < SEND_TENTATIVES) {
-    millisTarefa1 = millis();
-    int current_quantity = quantity_arr.substring(2*selectedLed-2,2*selectedLed).toInt();
+    millisTarefa1 = millis(); // Send to slave current time and all quantities asap
+    JSONVar jsonConfig = get_server_update();
+    quantity_arr = get_quantity_array(jsonConfig, selectedModule-1); // Get quantity array from current selected slave
+    int current_quantity = quantity_arr.substring(2*selectedLed-2,2*selectedLed).toInt(); // Get two digit integer quantity of selected cell
     String return_msg = "abc";
     if (selectionMode == 2) {
       selectedQuantity = current_quantity;
       return_msg = post_quantity(current_quantity);
-      ////Serial.print("send_selected_quantity return: ");
-      ////Serial.println(return_msg);
 
       //if (return_msg[2] == String(current_quantity)[0]) {
       send_selected_quantity = false;
@@ -649,8 +657,8 @@ void loop() {
     post_server_update(jsonConfig);
     selectionMode = 2;
     send_selection_mode = true;
-    quantity_arr = get_quantity_array(jsonConfig);
-    String return_msg = post_all_quantities(quantity_arr);
+    quantity_arr = get_quantity_array(jsonConfig, selectedModule-1);
+    String return_msg = post_all_quantities(quantity_arr, selectedModule-1);
     
     send_server_update = false;
     update_screen_values();
@@ -689,17 +697,11 @@ void rotaryInterrupt() {
         send_deselect_module = true;
         send_tries = 0;
 
-        //Serial.print(F("Selected module: "));
-        //Serial.println(selectedModule);
-
         update_screen_values();
     }
     if (selectionMode == 2 and selectedLedLast != selectedLed) {
         send_selected_led = true;
         send_tries = 0;
-
-        //Serial.print(F("Selected led: "));
-        //Serial.println(selectedLed);
         
         selectedLedLast = selectedLed;
         
@@ -708,9 +710,6 @@ void rotaryInterrupt() {
     if (selectionMode == 3 and selectedQttLast != selectedQuantity) {
         send_selected_quantity = true;
         send_tries = 0;
-
-        //Serial.print(F("Selected quantity: "));
-        //Serial.println(selectedQuantity);
         
         selectedQttLast = selectedQuantity;
         
