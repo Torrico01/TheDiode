@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     # My apps
     'core',
     'componente',
-    'subscriptions',
+    'projetos',
 
     'django.contrib.admin',
     'django.contrib.auth',

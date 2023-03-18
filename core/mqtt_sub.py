@@ -1,16 +1,17 @@
-from config_variables import *
+# Copiar as libraries de User/Documents/Arduino/Library para usar corretamente algumas funções daqui
+
 import paho.mqtt.client as mqttClient
+from config_variables import *
 
 import time, os, re, sys, subprocess
-import django, random
+import django, random, json
 
 # Import Django modules
 sys.path.append(PROJECT_PATH)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TheDiode.settings')
 django.setup()
-from subscriptions.models import PainelArmazenamentoModular
+from projetos.models import PainelArmazenamentoModular
 
-Connected = False #global variable for the state of the connection
 
 def get_processes_running():
     tasks = subprocess.check_output(['tasklist'])
@@ -30,50 +31,57 @@ def get_processes_running():
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected to broker")
-        global Connected                #Use global variable
-        Connected = True                #Signal connection 
     else:
         print("Connection failed")
 
+
 def save_mqtt_in_db(message, db_class, db_propriety, operator):
-    print("Mensagem em " + message.topic + ": " + message.payload.decode("utf-8"))
     value = operator(message.payload.decode())
     db_query = db_class.objects.first()
     db_query.__dict__[db_propriety] = value
     db_query.save()
 
+def json_publish_formatter(jsonFilePath):
+    jsonFile = open(jsonFilePath)
+    jsonObj = json.load(jsonFile)
+    jsonList = []
+    for jsonHeader in jsonObj:
+        jsonValue = jsonObj[jsonHeader]
+        jsonValueString = json.dumps(jsonValue)
+        jsonList.append(jsonValueString)
+    return jsonList
+
 def on_message(client, userdata, message):
+    print("Mensagem em " + message.topic + ": " + message.payload.decode("utf-8"))
     if PAINEL_TOPIC.modulo == message.topic: 
         save_mqtt_in_db(message, PainelArmazenamentoModular, 'modulo', int)
-    if PAINEL_TOPIC.display == message.topic: 
+        jsonMsgList = json_publish_formatter(PAINEL_CONFIG_JSON)
+        client.publish(PAINEL_TOPIC.modulo + "/BancoDeDados/1", jsonMsgList[0])
+    if PAINEL_TOPIC.outDisp == message.topic: 
         save_mqtt_in_db(message, PainelArmazenamentoModular, 'display', float)
         
+def on_publish(client, userdata, mid):
+    print("Published py1!")
   
-def mqtt_sub_main():
-    os.startfile(MOSQUITTO_RUN)
-    time.sleep(1)
-    
+def mqtt_sub_main():    
     broker_address= BROKER_ADDRESS  #Broker address
     port = BROKER_PORT              #Broker port
     user = "-"                   #Connection username
     password = "-"               #Connection password
     
-    client_id = f'python-mqtt-{random.randint(0, 100)}'
-    client = mqttClient.Client(client_id)               #create new instance
+    client_id = f'python-mqtt-1'
+    client = mqttClient.Client(client_id)              #create new instance
     #client.username_pw_set(user, password=password)   #set username and password
     client.on_connect= on_connect                      #attach function to callback
     client.on_message= on_message                      #attach function to callback
+    #client.on_publish= on_publish
 
     print ("Connecting to broker")
     client.connect(broker_address, port)          #connect to broker
-
-    #print ("Starting the loop")
-    #client.loop_start()        #start the loop
     
-    #while Connected != True:    #Wait for connection
-    #    pass
-    
-    client.subscribe("#")
+    # =======================
+    # Subscripe to all topics
+    client.subscribe("#") 
 
     try:
         client.loop_forever()
@@ -90,9 +98,15 @@ def main():
     for p in processes:
         if "python" in p["image"]:
             python_process+=1
-    if python_process < 4:
+    if python_process <= 3:
         # Start MQTT Broker (Mosquitto) and server subscription
+        print("Calling server subscriber main loop")
+        time.sleep(3)
         mqtt_sub_main()
+    else:
+        print("Exiting server subscriber main loop")
+        time.sleep(3)
+        
 
 if __name__ == '__main__':
     main()

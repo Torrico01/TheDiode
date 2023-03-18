@@ -1,3 +1,4 @@
 cd C:\Program Files\mosquitto
 
-mosquitto_pub -t "PainelArmazenamentoModular/Display" -m 10.111
+mosquitto_sub -h 192.168.15.8 -p 1883 -t teste/json
+mosquitto_pub -h 192.168.15.8 -p 1883 -t PainelArmazenamentoModular/Modulo/1 -m 1

@@ -16,9 +16,6 @@ def run_server():
         ) from exc
     execute_from_command_line(sys.argv)
 
-def run_mqtt():
-    os.startfile("C:\\Users\\ticto\\Documents\\Projetos\\Projetos Django\\The Diode v2\\TheDiode\\core\\mqtt_sub_run.bat")
-
 def main():
     run_server()
 

@@ -2,19 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from datetime import datetime
 
 from .forms import CriarCategoriaForm, CriarTipoForm, CriarComponenteForm, ComponenteForm
 from componente.models import TipoDeComponente, Categoria, Componente
-from core.config_variables import MQTT_SUB_RUN
+from core.config_variables import *
 
-import json, os
+import json
 
-esp8266_ip = "192.168.15.12"
-
-os.startfile(MQTT_SUB_RUN)
+esp8266_ip = "192.168.43.21"
 
 def conta_componentes():
     categorias = Categoria.objects.all()
@@ -40,7 +38,7 @@ def conta_componentes():
         count_total = 0
 
 def update_config():
-    jsonFile = open("core/static/core/esp.json")
+    jsonFile = open(PAINEL_CONFIG_JSON)
     dictEspConfig = json.load(jsonFile)
 
     for categoria in dictEspConfig:
@@ -54,7 +52,7 @@ def update_config():
                     continue
 
     jsonEspConfig = json.dumps(dictEspConfig, indent=4, sort_keys=True)
-    with open("core/static/core/esp.json", "w") as jsonFile:
+    with open(PAINEL_CONFIG_JSON, "w") as jsonFile:
         jsonFile.write(jsonEspConfig)
                 
 
@@ -65,7 +63,7 @@ def visitor_ip_address(request):
         ip = x_forwarded_for.split(',')[0]
     else:
         ip = request.META.get('REMOTE_ADDR')
-    return ip
+    return ip 
 
 
 @csrf_exempt
@@ -75,29 +73,34 @@ def home(request):
     #update_config()
 
     if request.method == "POST" and ip == esp8266_ip:
-        # Reads json request data
+        # Read json request data
         s = request.body.decode('utf8')
+        print(s)
+        '''
         in_data = json.loads(s)
         jsonEspConfig = json.dumps(in_data, indent=4, sort_keys=True)
-        with open("core/static/core/esp.json", "w") as jsonFile:
+        with open(PAINEL_CONFIG_JSON, "w") as jsonFile:
             jsonFile.write(jsonEspConfig)
 
         print("In ESP Configuration Data:")
         print(jsonEspConfig)
+        '''
 
         # Returns empty json dictionary
         return JsonResponse({})
 
     if request.method == "GET" and ip == esp8266_ip:
-        # Reads .json file as dictionary
-        jsonFile = open("core/static/core/esp.json")
+        # MANDAR PARA O ESP O MODULO ATUAL DO DB, O PEDAÇO DO JSON CORRESPONDENTE, E O RESTANTE DAS INFOS
+
+        # Read .json file as dictionary
+        jsonFile = open(PAINEL_CONFIG_JSON)
         dictEspConfig = json.load(jsonFile)
 
-        # Gets current time and updates .json file
-        horaAtual = datetime.now().strftime("%H%M")
+        # Get current time and update .json file
+        horaAtual = datetime.now().strftime("%H%M") 
         dictEspConfig["Funcionalidades"]["Horario"]["Atual"] = horaAtual
         jsonEspConfig = json.dumps(dictEspConfig, indent=4, sort_keys=True)
-        with open("core/static/core/esp.json", "w") as jsonFile:
+        with open(PAINEL_CONFIG_JSON, "w") as jsonFile:
             jsonFile.write(jsonEspConfig)
 
         #print("Out ESP Configuration Data:")
@@ -105,7 +108,8 @@ def home(request):
         #out_hora = {"hora":datetime.now().strftime("%H%M")}
 
         # Returns json dictionary
-        return JsonResponse(dictEspConfig)
+        print(dictEspConfig["Capacitor eletrolitico 1"])
+        return JsonResponse(dictEspConfig["Capacitor eletrolitico 1"])
 
     categorias = Categoria.objects.order_by('-quantidade')
     context = {'categorias':categorias}
@@ -147,7 +151,7 @@ def componentes(request, id_categoria, id):
     return render(request, 'core/componentes.html', context)
 
 def modificar(request, id_categoria, id_tipo, id):
-    componente_especifico = Componente.objects.get(id=id)
+    componente_especifico = Componente.objects.get(id=id) 
     tipo_especifico = TipoDeComponente.objects.get(id=id_tipo)
     form = ComponenteForm(instance=componente_especifico)
     if request.method == "POST":
