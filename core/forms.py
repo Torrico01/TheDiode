@@ -1,5 +1,6 @@
 from django.forms import ModelForm
-from componente.models import Componente, Categoria, TipoDeComponente
+from componente.models import *
+from projetos.models import *
 
 class CriarCategoriaForm(ModelForm):
     def __init__(self,*args,**kwargs):
@@ -40,3 +41,27 @@ class ComponenteForm(ModelForm):
     class Meta:
         model = Componente
         fields = ['quantidade']
+
+class CriarPainelForm(ModelForm):
+    def __init__(self,criar_painel_ids,*args,**kwargs):
+        super (CriarPainelForm,self ).__init__(*args,**kwargs) # populates the post
+        i = 1
+        for id_componente in criar_painel_ids.split(','):
+            self.fields['slot_'+str(i)].queryset = Componente.objects.filter(id=int(id_componente))
+            self.fields['slot_'+str(i)].widget.attrs.update({'class': 'criacao'})
+            i += 1
+        self.fields['nome'].widget.attrs.update({'class': 'criacao'})
+        self.fields['base'].widget.attrs.update({'class': 'criacao'})
+    class Meta:
+        model = PainelArmazenamentoModular
+        fields = ['nome',
+                  'base',
+                  'slot_1',
+                  'slot_2',
+                  'slot_3',
+                  'slot_4',
+                  'slot_5',
+                  'slot_6',
+                  'slot_7',
+                  'slot_8',
+                  'slot_9',]

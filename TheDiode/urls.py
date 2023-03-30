@@ -28,18 +28,22 @@ from core.views import (
     modificar,
     criarcategoria,
     criartipo,
-    criarcomponente
+    criarcomponente,
+    paineldearmazenamentomodular,
+    criarpaineldearmazenamentomodular
 )
 
 urlpatterns = [
+    path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('search/', search, name='search'),
-    path('', home, name='home'),
     path('criar/', criarcategoria, name='criarcategoria'),
     path('<int:id>/', tipos_de_componentes, name='tipos_de_componentes'),
     path('<int:id>/criar/', criartipo, name='criartipo'),
     path('<int:id_categoria>/<int:id>/', componentes, name='componentes'),
     path('<int:id_categoria>/<int:id>/criar/', criarcomponente, name='criarcomponente'),
     path('<int:id_categoria>/<int:id_tipo>/<int:id>', modificar, name='modificar'),
+    path('painel/',paineldearmazenamentomodular, name='paineldearmazenamentomodular'),
+    path('painel/criar',criarpaineldearmazenamentomodular, name='criarpaineldearmazenamentomodular'),
     path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

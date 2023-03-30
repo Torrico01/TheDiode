@@ -75,7 +75,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TheDiode.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -86,6 +85,7 @@ DATABASES = {
     }
 }
 
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

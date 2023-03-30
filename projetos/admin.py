@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import PainelArmazenamentoModular
+from .models import PainelDeArmazenamentoModularBase, PainelArmazenamentoModular
 
+admin.site.register(PainelDeArmazenamentoModularBase)
 admin.site.register(PainelArmazenamentoModular)
 
 #@admin.register(PainelArmazenamentoModular)

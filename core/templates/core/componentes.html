@@ -51,6 +51,12 @@
         <div class="container">
             <p><a class="btn btn-primary btn-lg" href="../../{{ id_categoria }}/{{ id_tipo }}/criar/" role="button">Criar componente</a></p>
         </div>
+        {% if criar_painel_msg != 0 %}
+        <div class="container">
+            <p style="color: red;">Criando <strong>Painel de Armazenamento Modular</strong>: {{ criar_painel_msg }}.
+            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'../../{{ id_categoria }}/{{ id_tipo }}')">Parar</button></p>
+        </div>
+        {% endif %}
     </div>
 
     <div class="container">
@@ -60,9 +66,16 @@
                 <h2>{{ componente.nome }}</h2>
                 <p>Quantidade: {{ componente.quantidade }}</p>
                 <div class="row">
+                    {% if criar_painel_msg == 0 %}
+                        <div id="btn-modificar">
+                            <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
+                        </div>
+                    {% endif %}
+                    {% if criar_painel_msg != 0 %}
                     <div id="btn-modificar">
-                        <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
+                        <button class="btn btn-danger" onclick="appendCookieAndRedirect('criar_painel_ids','{{ componente.id }}',30,',','../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}')" role="button">Adicionar</button>
                     </div>
+                    {% endif %}
                 </div>
                 <p></p>
             </div>

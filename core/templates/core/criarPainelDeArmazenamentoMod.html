@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %} Criar Painel de Armazenamento Modular {% endblock %}
+
+{% block content %}
+
+<style>
+    .criacao {
+    display: table;
+    }
+</style>
+
+<nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
+    <a class="navbar-brand" href="../../../">The Diode</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li>
+                <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<main role="main">
+
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-3">Criação</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="col">
+            <h2> Criar painel</h2>
+            <form action="" method="POST">
+                {% csrf_token %}
+                {{ form }}
+                <p></p>
+                <input type="Submit" name="Submit" class="btn btn-outline-success my-2 my-sm-0">
+            </form>
+        </div>
+
+        <hr>
+
+    </div>
+
+</main>
+
+<footer class="container">
+    <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
+</footer>
+{% endblock %}

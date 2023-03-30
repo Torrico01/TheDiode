@@ -71,6 +71,12 @@
         <div class="container">
             <p><a class="btn btn-primary btn-lg" href="../{{ id_categoria }}/criar/" role="button">Criar tipo</a></p>
         </div>
+        {% if criar_painel_msg != 0 %}
+        <div class="container">
+            <p style="color: red;">Criando <strong>Painel de Armazenamento Modular</strong>: {{ criar_painel_msg }}.
+            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'../{{ id_categoria }}')">Parar</button></p>
+        </div>
+        {% endif %}
     </div>
 
     <div class="container">
