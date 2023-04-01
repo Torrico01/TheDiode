@@ -1,18 +1,38 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %} Componentes {% endblock %}
+{% block title %} Home {% endblock %}
 
 {% block content %}
 
 <style>
-    .criacao {
-    display: table;
+    .categorias {
+      display: inline-block;
+      padding: 15px 25px;
+      font-size: 24px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      outline: none;
+      color: #fff;
+      background-color: #4CAF50;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 3px #999;
     }
+    
+    .categorias:hover {background-color: #3e8e41}
+    
+    .categorias:active {
+      background-color: #3e8e41;
+      box-shadow: 0 5px #666;
+      transform: translateY(4px);
+    }
+
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="/">The Diode</a>
+    <a class="navbar-brand" href="../">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -24,10 +44,6 @@
                 <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
             </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0" action="/componentes/search">
-            <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
     </div>
 </nav>
 
@@ -36,25 +52,22 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <h1 class="display-3">Criação</h1>
+            <h1 class="display-3">The Diode</h1>
             <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
         </div>
     </div>
 
     <div class="container">
-        <div class="col">
-            <h2> Criar tipo de {{ categoria_especifica.nome }}</h2>
-            <form action="" method="POST">
-                {% csrf_token %}
-                {{ form }}
-                <p></p>
-                <input type="Submit" name="Submit" class="btn btn-outline-success my-2 my-sm-0">
-            </form>
+        <div class="row">
+            <div class="col-md-4">
+                <a class="categorias" onclick="document.location='/painel'" role="button">Painel de Armazenamento Modular</a>
+                <hr>
+                <a class="categorias" onclick="document.location='/componentes'" role="button">Lista de componentes no banco de dados</a>
+            </div>
         </div>
-
         <hr>
 
-    </div> <!-- /container -->
+    </div>
 
 </main>
 

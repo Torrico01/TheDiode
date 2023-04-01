@@ -12,7 +12,7 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="../../">The Diode</a>
+    <a class="navbar-brand" href="/">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -28,12 +28,12 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../../{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.nome }}</a>
                     {% endfor %}
                 </div>
             </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0" action="/search">
+        <form class="form-inline my-2 my-lg-0" action="/componentes/search">
             <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
@@ -49,12 +49,12 @@
             <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
         </div>
         <div class="container">
-            <p><a class="btn btn-primary btn-lg" href="../../{{ id_categoria }}/{{ id_tipo }}/criar/" role="button">Criar componente</a></p>
+            <p><a class="btn btn-primary btn-lg" href="criarcomponente" role="button">Criar componente</a></p>
         </div>
         {% if criar_painel_msg != 0 %}
         <div class="container">
             <p style="color: red;">Criando <strong>Painel de Armazenamento Modular</strong>: {{ criar_painel_msg }}.
-            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'../../{{ id_categoria }}/{{ id_tipo }}')">Parar</button></p>
+            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'/componentes/categoria{{ id_categoria }}/tipo{{ id_tipo }}')">Parar</button></p>
         </div>
         {% endif %}
     </div>
@@ -62,18 +62,18 @@
     <div class="container">
         <div class="row">
             {% for componente in componentes %} 
-            <div class="col-md-4">  
+            <div class="col-md-4">
                 <h2>{{ componente.nome }}</h2>
                 <p>Quantidade: {{ componente.quantidade }}</p>
                 <div class="row">
                     {% if criar_painel_msg == 0 %}
                         <div id="btn-modificar">
-                            <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
+                            <button class="btn btn-secondary" onclick="document.location='/componentes/categoria{{ componente.tipo.categoria.id }}/tipo{{ componente.tipo.id }}/componente{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
                         </div>
                     {% endif %}
                     {% if criar_painel_msg != 0 %}
                     <div id="btn-modificar">
-                        <button class="btn btn-danger" onclick="appendCookieAndRedirect('criar_painel_ids','{{ componente.id }}',30,',','../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}')" role="button">Adicionar</button>
+                        <button class="btn btn-danger" onclick="appendCookieAndRedirect('criar_painel_ids','{{ componente.id }}',30,',','/componentes/categoria{{ componente.tipo.categoria.id }}/tipo{{ componente.tipo.id }}')" role="button">Adicionar</button>
                     </div>
                     {% endif %}
                 </div>

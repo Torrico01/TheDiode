@@ -32,7 +32,7 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="../">The Diode</a>
+    <a class="navbar-brand" href="/">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -56,12 +56,12 @@
         <div class="row">
             {% if criar_painel_completo == "False" %}
             <div class="col-md-4">  
-                <a class="categorias" onclick="setCookieAndRedirect('criar_painel','True',30,'/')" role="button">Criar painel (selecionar componentes)</a>
+                <a class="categorias" onclick="setCookieAndRedirect('criar_painel','True',30,'/componentes')" role="button">Criar painel (selecionar componentes)</a>
             </div>
             {% endif %}
             {% if criar_painel_completo == "True" %}
             <div class="col-md-4">  
-                <a class="categorias" onclick="document.location='../painel/criar'" role="button">Criar painel (completo)</a>
+                <a class="categorias" onclick="document.location='/painel/criarpainel'" role="button">Criar painel (completo)</a>
             </div>
             {% endif %}
         </div>

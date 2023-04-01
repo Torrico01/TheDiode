@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %} Home {% endblock %}
+{% block title %} Categorias {% endblock %}
 
 {% block content %}
 
@@ -32,7 +32,7 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="../">The Diode</a>
+    <a class="navbar-brand" href="/">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -48,12 +48,12 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.nome }}</a>
                     {% endfor %}
                 </div>
             </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0" action="/search">
+        <form class="form-inline my-2 my-lg-0" action="/componentes/search">
             <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
@@ -69,12 +69,12 @@
             <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
         </div>
         <div class="container">
-            <p><a class="btn btn-primary btn-lg" href="criar" role="button">Criar categoria</a></p>
+            <p><a class="btn btn-primary btn-lg" href="criarcategoria" role="button">Criar categoria</a></p>
         </div>
         {% if criar_painel_msg != 0 %}
         <div class="container">
             <p style="color: red;">Criando <strong>Painel de Armazenamento Modular</strong>: {{ criar_painel_msg }}.
-            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'/')">Parar</button></p>
+            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'/componentes')">Parar</button></p>
         </div>
         {% endif %}
     </div>
@@ -84,7 +84,7 @@
         <div class="row">
             {% for categoria in categorias %} 
             <div class="col-md-4">  
-                <button class="categorias" onclick="document.location='{{ categoria.id }}'" role="button">{{ categoria.nome }}</button>
+                <button class="categorias" onclick="document.location='categoria{{ categoria.id }}'" role="button">{{ categoria.nome }}</button>
                 <p>Quantidade total: {{ categoria.quantidade }}</p>
             </div>        
             {% endfor %}

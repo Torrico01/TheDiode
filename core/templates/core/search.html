@@ -12,7 +12,7 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="../">The Diode</a>
+    <a class="navbar-brand" href="/">The Diode</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -28,7 +28,7 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="../../../../{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.nome }}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -58,7 +58,7 @@
                 <p>Quantidade: {{ componente.quantidade }}</p>
                 <div class="row">
                     <div id="btn-modificar">
-                        <button class="btn btn-secondary" onclick="document.location='../../../{{ componente.tipo.categoria.id }}/{{ componente.tipo.id }}/{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
+                        <button class="btn btn-secondary" onclick="document.location='/componentes/categoria{{ componente.tipo.categoria.id }}/tipo{{ componente.tipo.id }}/componente{{ componente.id }}'" role="button" style="background-color: #808080;">Modificar</button>
                     </div>
                 </div>
                 <p></p>

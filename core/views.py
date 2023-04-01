@@ -71,7 +71,6 @@ def painelDeArmazenamentoModular_json():
     # Get pannels names
     for painel in PainelArmazenamentoModular.objects.all():
         dictJsonPainel = {}
-        #pannel = PainelArmazenamentoModular.objects.get(nome=painel)
         # Get components in pannels
         for i in range(1,10):
             if i==1: 
@@ -101,8 +100,8 @@ def painelDeArmazenamentoModular_json():
             if i==9: 
                 keyName = painel.slot_9
                 idx = painel.slot_9.id
-            qtd = keyName.quantidade
             lim = keyName.limite
+            qtd = keyName.quantidade
             keyName = str(i) + ". " + keyName.nome
             # Get slots proprieties
             dictJsonPainel.update({keyName:{"ID":idx,"Lim":lim,"Qtd":qtd}})
@@ -180,6 +179,11 @@ def home(request):
         print(dictEspConfig["Capacitor eletrolitico 1"])
         return JsonResponse(dictEspConfig["Capacitor eletrolitico 1"])
 
+    context = {}
+    response = render(request, 'core/home.html', context)
+    return response
+
+def categorias(request):
     # Lista os componentes
     categorias = Categoria.objects.order_by('-quantidade')
     # (Se) Criando Painel de Armazenamento Modular:
@@ -187,7 +191,7 @@ def home(request):
     # Return render
     context = {'categorias':categorias,
                'criar_painel_msg':criar_painel_msg}
-    response = render(request, 'core/menu.html', context)
+    response = render(request, 'core/categorias.html', context)
     return response
 
 def search(request):
@@ -205,7 +209,7 @@ def search(request):
                'tipodecomponentes':tipodecomponentes}
     return render(request, 'core/search.html', context)
 
-def tipos_de_componentes(request, id):
+def tiposdecomponentes(request, id):
     # Lista os componentes
     tipodecomponente = TipoDeComponente.objects.filter(categoria=id).order_by('-quantidade')
     categorias = Categoria.objects.order_by('-quantidade')
@@ -217,7 +221,7 @@ def tipos_de_componentes(request, id):
                'categoria_especifica':Categoria.objects.get(id=id),
                'id_categoria':id,
                'criar_painel_msg':criar_painel_msg}
-    return render(request, 'core/tipos_de_componentes.html', context)
+    return render(request, 'core/tiposdecomponentes.html', context)
 
 def componentes(request, id_categoria, id):
     # Lista os componentes
@@ -296,16 +300,15 @@ def paineldearmazenamentomodular(request):
 
 def criarpaineldearmazenamentomodular(request):
     criar_painel_num_ids = painelDeArmazenamentoModular_splitIds(request, "criar_painel_ids")
-    if request.COOKIES.get('criar_painel') == "True" and criar_painel_num_ids == 9:
+    painel_component_selection_completed = request.COOKIES.get('criar_painel') == "True" and criar_painel_num_ids == 9
+    if painel_component_selection_completed:
         form = CriarPainelForm(request.COOKIES.get("criar_painel_ids"))
         if request.method == "POST":
             form = CriarPainelForm(request.COOKIES.get("criar_painel_ids"),request.POST)
             if form.is_valid():
                 form.save()
-                if request.COOKIES.get('criar_painel') == "True" and criar_painel_num_ids == 9:
-                    criar_painel_completo = "True"
-                else:
-                    criar_painel_completo = "False"
+                if painel_component_selection_completed: criar_painel_completo = "True"
+                else: criar_painel_completo = "False"
                 context = {"criar_painel_completo":criar_painel_completo}
                 response = render(request, 'core/painelDeArmazenamentoMod.html', context)
                 response.set_cookie('criar_painel', "False") # Set cookie false
@@ -314,6 +317,9 @@ def criarpaineldearmazenamentomodular(request):
         context = {'form': form}
         response = render(request, 'core/criarPainelDeArmazenamentoMod.html', context)
     else:
-        response = render(request, 'core/menu.html', {})
+        if painel_component_selection_completed: criar_painel_completo = "True"
+        else: criar_painel_completo = "False"
+        context = {"criar_painel_completo":criar_painel_completo}
+        response = render(request, 'core/painelDeArmazenamentoMod.html', context)
         response.set_cookie('criar_painel', "True") # Set cookie true
     return response

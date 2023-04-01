@@ -20,30 +20,20 @@ from django.conf.urls.static import static
 from django.views.generic.base import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage
 
-from core.views import (
-    home,
-    search,
-    tipos_de_componentes,
-    componentes,
-    modificar,
-    criarcategoria,
-    criartipo,
-    criarcomponente,
-    paineldearmazenamentomodular,
-    criarpaineldearmazenamentomodular
-)
+from core.views import *
 
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
-    path('search/', search, name='search'),
-    path('criar/', criarcategoria, name='criarcategoria'),
-    path('<int:id>/', tipos_de_componentes, name='tipos_de_componentes'),
-    path('<int:id>/criar/', criartipo, name='criartipo'),
-    path('<int:id_categoria>/<int:id>/', componentes, name='componentes'),
-    path('<int:id_categoria>/<int:id>/criar/', criarcomponente, name='criarcomponente'),
-    path('<int:id_categoria>/<int:id_tipo>/<int:id>', modificar, name='modificar'),
-    path('painel/',paineldearmazenamentomodular, name='paineldearmazenamentomodular'),
-    path('painel/criar',criarpaineldearmazenamentomodular, name='criarpaineldearmazenamentomodular'),
+    path('componentes/', categorias, name='categorias'),
+    path('componentes/search/', search, name='search'),
+    path('componentes/criarcategoria/', criarcategoria, name='criarcategoria'),
+    path('componentes/categoria<int:id>/', tiposdecomponentes, name='tiposdecomponentes'),
+    path('componentes/categoria<int:id>/criartipo/', criartipo, name='criartipo'),
+    path('componentes/categoria<int:id_categoria>/tipo<int:id>/', componentes, name='componentes'),
+    path('componentes/categoria<int:id_categoria>/tipo<int:id>/criarcomponente/', criarcomponente, name='criarcomponente'),
+    path('componentes/categoria<int:id_categoria>/tipo<int:id_tipo>/componente<int:id>', modificar, name='modificar'),
+    path('painel/', paineldearmazenamentomodular, name='paineldearmazenamentomodular'),
+    path('painel/criarpainel', criarpaineldearmazenamentomodular, name='criarpaineldearmazenamentomodular'),
     path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
