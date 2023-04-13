@@ -36,4 +36,4 @@ urlpatterns = [
     path('painel/', paineldearmazenamentomodular, name='paineldearmazenamentomodular'),
     path('painel/criarpainel', criarpaineldearmazenamentomodular, name='criarpaineldearmazenamentomodular'),
     path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
