@@ -12,7 +12,9 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="/">The Diode</a>
+    <div class="btnWithSliderEffect" role="home">
+    <a class="navbar-brand" onclick="changePage('/')" role="button">The Diode</a>
+    </div>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -26,7 +28,9 @@
         </ul>
         <form class="form-inline my-2 my-lg-0" action="/componentes/search">
             <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <div class="btnWithSliderEffect">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </div>
         </form>
     </div>
 </nav>
@@ -35,26 +39,30 @@
 
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
-        <div class="container">
-            <h1 class="display-3">Criação</h1>
-            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+        <div class="fromRight">
+            <div class="container">
+                <h1 class="display-3">Criação</h1>
+                <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+            </div>
         </div>
     </div>
 
+    <div class="fromRight">
     <div class="container">
         <div class="col">
             <h2> Criar tipo de {{ categoria_especifica.nome }}</h2>
-            <form action="" method="POST">
+            <form action="" method="POST" id="form-create">
                 {% csrf_token %}
                 {{ form }}
                 <p></p>
-                <input type="Submit" name="Submit" class="btn btn-outline-success my-2 my-sm-0">
+                <button type="Submit" class="btn btn-outline-success my-2 my-sm-0">Enviar</button>
             </form>
         </div>
 
         <hr>
 
-    </div> <!-- /container -->
+    </div>
+    </div>
 
 </main>
 

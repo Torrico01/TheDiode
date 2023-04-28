@@ -3,94 +3,112 @@
         "1. 1uF": {
             "ID": "4/19/53",
             "Lim": 2,
-            "Qtd": 1
+            "Qtd": 1,
+            "Quantidade": 1
         },
         "2. 2.2uF": {
             "ID": "4/19/52",
             "Lim": 2,
-            "Qtd": 0
+            "Qtd": 0,
+            "Quantidade": 7
         },
         "3. 10uF": {
             "ID": "4/19/56",
             "Lim": 2,
-            "Qtd": 0
+            "Qtd": 0,
+            "Quantidade": 5
         },
         "4. 22uF": {
             "ID": "4/19/54",
             "Lim": 2,
-            "Qtd": 0
+            "Qtd": 0,
+            "Quantidade": 1
         },
         "5. 33uF": {
             "ID": "4/19/55",
             "Lim": 2,
-            "Qtd": 1
+            "Qtd": 1,
+            "Quantidade": 1
         },
         "6. 100uF": {
             "ID": "4/19/57",
             "Lim": 2,
-            "Qtd": 2
+            "Qtd": 2,
+            "Quantidade": 1
         },
         "7. 220uF": {
             "ID": "4/19/58",
             "Lim": 2,
-            "Qtd": 0
+            "Qtd": 0,
+            "Quantidade": 4
         },
         "8. 470uF": {
             "ID": "4/19/59",
             "Lim": 2,
-            "Qtd": 1
+            "Qtd": 1,
+            "Quantidade": 4
         },
         "9. 2200uF": {
             "ID": "4/19/60",
             "Lim": 2,
-            "Qtd": 2
+            "Qtd": 2,
+            "Quantidade": 2
         }
     },
     "Capacitor eletrolitico 2": {
         "1. 1uF": {
             "ID": "4/19/53",
             "Lim": 2,
-            "Qtd": 1
+            "Qtd": 1,
+            "Quantidade": 1
         },
         "2. 2.2uF": {
             "ID": "4/19/52",
             "Lim": 2,
-            "Qtd": 5
+            "Qtd": 5,
+            "Quantidade": 7
         },
         "3. 10uF": {
             "ID": "4/19/56",
             "Lim": 2,
-            "Qtd": 2
+            "Qtd": 2,
+            "Quantidade": 5
         },
         "4. 22uF": {
             "ID": "4/19/54",
             "Lim": 2,
-            "Qtd": 2
+            "Qtd": 2,
+            "Quantidade": 1
         },
         "5. 33uF": {
             "ID": "4/19/55",
             "Lim": 2,
-            "Qtd": 1
+            "Qtd": 1,
+            "Quantidade": 1
         },
         "6. 100uF": {
             "ID": "4/19/57",
             "Lim": 2,
-            "Qtd": 0
+            "Qtd": 0,
+            "Quantidade": 1
         },
         "7. 220uF": {
             "ID": "4/19/58",
             "Lim": 2,
-            "Qtd": 2
+            "Qtd": 2,
+            "Quantidade": 4
         },
         "8. 470uF": {
             "ID": "4/19/59",
             "Lim": 2,
-            "Qtd": 0
+            "Qtd": 0,
+            "Quantidade": 4
         },
         "9. 2200uF": {
             "ID": "4/19/60",
             "Lim": 2,
-            "Qtd": 1
+            "Qtd": 1,
+            "Quantidade": 2
         }
     },
     "Funcionalidades": {

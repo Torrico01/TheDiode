@@ -32,7 +32,9 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="../">The Diode</a>
+    <div class="btnWithSliderEffect">
+    <a class="navbar-brand" onclick="changePage('/')" role="button">The Diode</a>
+    </div>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -51,27 +53,124 @@
 
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
-        <div class="container">
-            <h1 class="display-3">The Diode</h1>
-            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+        <div class="fromLeft">
+            <div class="container">
+                <h1 class="display-3">The Diode</h1>
+                <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+            </div>
+
+            
+            <div class="container">
+                <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4">
-                <a class="categorias" onclick="document.location='/painel'" role="button">Painel de Armazenamento Modular</a>
-                <hr>
-                <a class="categorias" onclick="document.location='/componentes'" role="button">Lista de componentes no banco de dados</a>
+
+    <div class="fromLeft">
+        <div class="container">
+            <h1 class="test-font">Explorador de projetos</h1>
+        </div>
+
+        <div class="card-class">
+            <div class="card">
+                <h1>Painel de Armazenamento Modular</h1>
+
+                <xp class="container">
+                    <div class="grid-home-btn">
+                        <div class="item-1">
+                            <div class="btnWithSliderEffect">
+                                <a class="categorias" onclick="changePage('/painel')" role="button">Painel de Armazenamento Modular</a>
+                            </div>
+                        </div>
+                        <div class="item-2">
+                            <div class="btnWithSliderEffect">
+                                <a class="categorias" onclick="changePage('/componentes')" role="button">Lista de componentes no banco de dados</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="close-btn">
+                        <a class="categorias" role="button">x</a>
+                    </div>
+                </xp>
+
+            </div>
+            <div class="card">
+                <h1>Painel 2</h1>
+
+                <xp class="container">
+                    <div class="grid-home-btn">
+                        <div class="item-1">
+                            <div class="btnWithSliderEffect">
+                                <a class="categorias" onclick="changePage('/painel')" role="button">Painel de Armazenamento Modular</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="close-btn">
+                        <a class="categorias" role="button">x</a>
+                    </div>
+                </xp>
+
+            </div>
+            <div class="card">
+                <h1>Painel 3</h1>
+
+                <xp class="container">
+                    <div class="grid-home-btn">
+                        <div class="item-1">
+                            <div class="btnWithSliderEffect">
+                                <a class="categorias" onclick="changePage('/painel')" role="button">Painel de Armazenamento Modular</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="close-btn">
+                        <a class="categorias" role="button">x</a>
+                    </div>
+                </xp>
+
+            </div>
+            <div class="card">
+                <h1>Painel 4</h1>
+
+                <xp class="container">
+                    <div class="grid-home-btn">
+                        <div class="item-1">
+                            <div class="btnWithSliderEffect">
+                                <a class="categorias" onclick="changePage('/painel')" role="button">Painel de Armazenamento Modular</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="close-btn">
+                        <a class="categorias" role="button">x</a>
+                    </div>
+                </xp>
+
+            </div>
+            <div class="card">
+                <h1>Painel 5</h1>
+
+                <xp class="container">
+                    <div class="grid-home-btn">
+                        <div class="item-1">
+                            <div class="btnWithSliderEffect">
+                                <a class="categorias" onclick="changePage('/painel')" role="button">Painel de Armazenamento Modular</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="close-btn">
+                        <a class="categorias" role="button">x</a>
+                    </div>
+                </xp>
+
             </div>
         </div>
-        <hr>
-
+        
     </div>
 
 </main>
-
-<footer class="container">
-    <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
-</footer>
 {% endblock %}

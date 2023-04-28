@@ -11,9 +11,10 @@ from componente.models import TipoDeComponente, Categoria, Componente
 from core.config_variables import *
 from projetos.models import *
 
-import json
+import json, time
 
 esp8266_ip = "192.168.43.21"
+delayForSliderAnimation = 0.7
 
 def visitor_ip_address(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -195,6 +196,7 @@ def categorias(request):
     return response
 
 def search(request):
+    time.sleep(delayForSliderAnimation) # Wait for animation to finish
     q=request.GET['q']
     tipodecomponentes = TipoDeComponente.objects.filter(nome__icontains=q).order_by('nome')
     componentes = Componente.objects.none()
@@ -245,10 +247,11 @@ def modificar(request, id_categoria, id_tipo, id):
     if request.method == "POST":
         form = ComponenteForm(request.POST, instance=componente_especifico)
         if form.is_valid():
+            time.sleep(delayForSliderAnimation) # Wait for animation to finish
             form.save()
             conta_componentes()
             update_config()
-            return redirect('../../' + str(id_categoria) + '/' + str(id_tipo))
+            return redirect("./")
     context = {'form': form,
                'componente_especifico': componente_especifico,
                'tipo_especifico': tipo_especifico}
@@ -259,6 +262,7 @@ def criarcategoria(request):
     if request.method == "POST":
         form = CriarCategoriaForm(request.POST)
         if form.is_valid():
+            time.sleep(delayForSliderAnimation) # Wait for animation to finish
             form.save()
             return redirect('../')
     context = {'form': form}
@@ -269,8 +273,9 @@ def criartipo(request, id):
     if request.method == "POST":
         form = CriarTipoForm(id,request.POST)
         if form.is_valid():
+            time.sleep(delayForSliderAnimation) # Wait for animation to finish
             form.save()
-            return redirect('../../' + str(id))
+            return redirect('../')
     context = {'form': form,
                'categoria_especifica':Categoria.objects.get(id=id)}
     return render(request, 'core/criartipo.html', context)
@@ -281,9 +286,10 @@ def criarcomponente(request, id_categoria, id):
     if request.method == "POST":
         form = CriarComponenteForm(id,request.POST)
         if form.is_valid():
+            time.sleep(delayForSliderAnimation) # Wait for animation to finish
             form.save()
             conta_componentes()
-            return redirect('../../../' + str(tipo_especifico.categoria.id) + '/' + str(id))
+            return redirect('../')
     context = {'form': form,
                'tipo_especifico':tipo_especifico}
     return render(request, 'core/criarcomponente.html', context)

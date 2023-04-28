@@ -32,7 +32,9 @@
 </style>
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
-    <a class="navbar-brand" href="/">The Diode</a>
+    <div class="btnWithSliderEffect" role="home">
+    <a class="navbar-brand" onclick="changePage('/')" role="button">The Diode</a>
+    </div>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
         aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -55,7 +57,9 @@
         </ul>
         <form class="form-inline my-2 my-lg-0" action="/componentes/search">
             <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <div class="btnWithSliderEffect">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </div>
         </form>
     </div>
 </nav>
@@ -64,27 +68,33 @@
 
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
-        <div class="container">
-            <h1 class="display-3">Tipos de {{ categoria_especifica }}</h1>
-            <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+        <div class="fromRight">
+            <div class="container">
+                <h1 class="display-3">Tipos de {{ categoria_especifica }}</h1>
+                <p>Esse é um site para organizar a minha lista de componentes eletrônicos, e possíveis outras coisas interessantes que possam ser integradas.</p>
+            </div>
+            <div class="btnWithSliderEffect">
+            <div class="container">
+                <p><button class="btn btn-primary btn-lg"  onclick="changePage('criartipo')" role="button">Criar tipo</button></p>
+            </div>
+            </div>
+            {% if criar_painel_msg != 0 %}
+            <div class="container">
+                <p style="color: red;">Criando <strong>Painel de Armazenamento Modular</strong>: {{ criar_painel_msg }}.
+                <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'/componentes/categoria{{ id_categoria }}')">Parar</button></p>
+            </div>
+            {% endif %}
         </div>
-        <div class="container">
-            <p><a class="btn btn-primary btn-lg" href="criartipo" role="button">Criar tipo</a></p>
-        </div>
-        {% if criar_painel_msg != 0 %}
-        <div class="container">
-            <p style="color: red;">Criando <strong>Painel de Armazenamento Modular</strong>: {{ criar_painel_msg }}.
-            <button class="btn btn-outline-danger btn-sm" onclick="eraseCookie('criar_painel_ids');setCookieAndRedirect('criar_painel','False',30,'/componentes/categoria{{ id_categoria }}')">Parar</button></p>
-        </div>
-        {% endif %}
     </div>
 
+    <div class="fromRight">
     <div class="container">
-        <!-- Example row of columns -->
         <div class="row">
             {% for tipodecomponente in tipodecomponentes %} 
             <div class="col-md-4">  
-                <a class="categorias" onclick="document.location='../categoria{{ tipodecomponente.categoria.id }}/tipo{{ tipodecomponente.id }}'" role="button">{{ tipodecomponente.nome }}</a>
+                <div class="btnWithSliderEffect">
+                <a class="categorias" onclick="changePage('../categoria{{ tipodecomponente.categoria.id }}/tipo{{ tipodecomponente.id }}')" role="button">{{ tipodecomponente.nome }}</a>
+                </div>
                 <p>Quantidade do tipo: {{ tipodecomponente.quantidade }}</p>
             </div>
             {% endfor %}
@@ -92,7 +102,8 @@
 
         <hr>
 
-    </div> <!-- /container -->
+    </div>
+    </div>
 
 </main>
 
