@@ -30,7 +30,7 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.name }}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -61,7 +61,7 @@
         <div class="row">
             {% for componente in componentes %} 
             <div class="col-md-4">  
-                <h2>{{ componente.tipo }} {{ componente.nome }}</h2>
+                <h2>{{ componente.tipo }} {{ componente.name }}</h2>
                 <p>Quantidade: {{ componente.quantidade }}</p>
                 <div class="row">
                     <div id="btn-modificar">

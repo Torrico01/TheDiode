@@ -10,7 +10,7 @@ import django, random, json
 sys.path.append(PROJECT_PATH)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TheDiode.settings')
 django.setup()
-from projetos.models import PainelArmazenamentoModular
+from projects.models import ModularStoragePannel
 
 
 def get_processes_running():
@@ -54,11 +54,11 @@ def json_publish_formatter(jsonFilePath):
 def on_message(client, userdata, message):
     print("Mensagem em " + message.topic + ": " + message.payload.decode("utf-8"))
     if PAINEL_TOPIC.modulo == message.topic: 
-        save_mqtt_in_db(message, PainelArmazenamentoModular, 'modulo', int)
+        save_mqtt_in_db(message, ModularStoragePannel, 'modulo', int)
         jsonMsgList = json_publish_formatter(PAINEL_CONFIG_JSON)
         client.publish(PAINEL_TOPIC.modulo + "/BancoDeDados/1", jsonMsgList[0])
     if PAINEL_TOPIC.outDisp == message.topic: 
-        save_mqtt_in_db(message, PainelArmazenamentoModular, 'display', float)
+        save_mqtt_in_db(message, ModularStoragePannel, 'display', float)
         
 def on_publish(client, userdata, mid):
     print("Published py1!")

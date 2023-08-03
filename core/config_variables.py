@@ -27,3 +27,10 @@ PAINEL_TOPIC = PainelDeArmazenamentoModularTopico()
 # ---------- IDs ----------
 SERVER_ID = 1
 PAINEL_ID = 2
+
+# ---------- Projects ----------
+project_dict = {
+    'p1': 'TheDiode',
+    'p2': 'ModularStoragePanelBase',
+    'p3': 'ModularStoragePanel'
+}

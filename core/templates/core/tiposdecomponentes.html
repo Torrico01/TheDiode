@@ -50,7 +50,7 @@
                     aria-expanded="false">Categorias</a>
                 <div class="dropdown-menu" aria-labelledby="dropdown01">
                     {% for categoria in categorias %} 
-                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.nome }}</a>
+                        <a class="dropdown-item" href="/componentes/categoria{{ categoria.id }}">{{ categoria.name }}</a>
                     {% endfor %}
                 </div>
             </li>
@@ -93,7 +93,7 @@
             {% for tipodecomponente in tipodecomponentes %} 
             <div class="col-md-4">  
                 <div class="btnWithSliderEffect">
-                <a class="categorias" onclick="changePage('../categoria{{ tipodecomponente.categoria.id }}/tipo{{ tipodecomponente.id }}')" role="button">{{ tipodecomponente.nome }}</a>
+                <a class="categorias" onclick="changePage('../categoria{{ tipodecomponente.categoria.id }}/tipo{{ tipodecomponente.id }}')" role="button">{{ tipodecomponente.name }}</a>
                 </div>
                 <p>Quantidade do tipo: {{ tipodecomponente.quantidade }}</p>
             </div>

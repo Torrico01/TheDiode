@@ -34,8 +34,8 @@ ALLOWED_HOSTS = ['*'] # ['192.168.15.8','192.168.15.12']
 INSTALLED_APPS = [
     # My apps
     'core',
-    'componente',
-    'projetos',
+    'components',
+    'projects',
 
     'django.contrib.admin',
     'django.contrib.auth',

@@ -5,13 +5,24 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from datetime import datetime
+from django.apps import apps
 
-from .forms import *
-from componente.models import TipoDeComponente, Categoria, Componente
 from core.config_variables import *
-from projetos.models import *
+from components.models import *
+from projects.models import *
+from .forms import *
 
-import json, time
+import json, time, math
+
+# When creating a connection between two projects
+#model1 = ModularStoragePanelBase.objects.first()
+#Connection.objects.create(target=model1)
+#model2 = ModularStoragePanel.objects.first()
+#Connection.objects.create(target=model2)
+
+# When getting the connected elements
+
+#Connection.
 
 esp8266_ip = "192.168.43.21"
 delayForSliderAnimation = 0.7
@@ -25,15 +36,15 @@ def visitor_ip_address(request):
     return ip 
 
 def conta_componentes():
-    categorias = Categoria.objects.all()
+    categorias = Category.objects.all()
     count_total = 0
     count = 0
 
     for categoria in categorias:
-        tipodecomponentes_filtrados = categoria.tipodecomponente_set.all()
+        tipodecomponentes_filtrados = categoria.componenttype_set.all()
 
         for tipodecomponente in tipodecomponentes_filtrados:
-            componentes_filtrados = tipodecomponente.componente_set.all()
+            componentes_filtrados = tipodecomponente.component_set.all()
 
             for componente_filtrado in componentes_filtrados:
                 count += componente_filtrado.quantidade
@@ -56,7 +67,7 @@ def update_config():
             for componente in dictEspConfig[categoria]:
                 try:
                     componente_id = dictEspConfig[categoria][componente]["ID"].split("/")[2]
-                    componente_obj = Componente.objects.get(id=int(componente_id))
+                    componente_obj = Component.objects.get(id=int(componente_id))
                     dictEspConfig[categoria][componente]["Quantidade"] = componente_obj.quantidade
                 except:
                     continue
@@ -70,7 +81,7 @@ def painelDeArmazenamentoModular_json():
     dictJson = {}
 
     # Get pannels names
-    for painel in PainelArmazenamentoModular.objects.all():
+    for painel in ModularStoragePanel.objects.all():
         dictJsonPainel = {}
         # Get components in pannels
         for i in range(1,10):
@@ -103,7 +114,7 @@ def painelDeArmazenamentoModular_json():
                 idx = painel.slot_9.id
             lim = keyName.limite
             qtd = keyName.quantidade
-            keyName = str(i) + ". " + keyName.nome
+            keyName = str(i) + ". " + keyName.name
             # Get slots proprieties
             dictJsonPainel.update({keyName:{"ID":idx,"Lim":lim,"Qtd":qtd}})
         dictJson.update(dictJsonPainel)
@@ -131,6 +142,40 @@ def painelDeArmazenamentoModular_contextMsg(request):
         criar_painel_msg = 0
     return criar_painel_msg
 
+# Defining classes to be used in html by accessing its values
+class InterfaceProject( object ):
+   def __init__( self, pk, id, name, model, grid_row, grid_col ):
+       self.pk = pk
+       self.id = id
+       self.name = name
+       self.model = model
+       self.grid_row = grid_row
+       self.grid_col = grid_col
+    
+class InterfaceConnection( object ):
+    def __init__( self, id1, id2, start_grid_row, start_grid_col, end_grid_row, end_grid_col ):
+        self.id1 = id1
+        self.id2 = id2
+        # Calculate angle, scale and translation of line
+        x_start = (start_grid_col*50)-25
+        y_start = (start_grid_row*50)-25
+        x_end = (end_grid_col*50)-25
+        y_end = (end_grid_row*50)-25
+        dist_ver = abs(end_grid_row-start_grid_row)
+        dist_hor = abs(end_grid_col-start_grid_col)
+        position_y = min(y_start,y_end) + 25*dist_ver
+        position_x = min(x_start,x_end) + 25*dist_hor
+        translate_y = str(position_y-25)
+        translate_x = str(position_x-25)
+        angle = math.atan(dist_ver/dist_hor)
+        if (y_start > y_end or x_start > x_end): angle = str(-angle)
+        scale = math.sqrt(dist_ver**2 + dist_hor**2)
+        # ----------------------------------------------
+        self.angle = angle
+        self.scale = scale
+        self.translate_x = translate_x
+        self.translate_y = translate_y
+
 
 @csrf_exempt
 def home(request):
@@ -139,7 +184,7 @@ def home(request):
     #update_config()
 
     jsonDict = painelDeArmazenamentoModular_json()
-    print(jsonDict)
+    #print(jsonDict)
 
     if request.method == "POST" and ip == esp8266_ip:
         # Read json request data
@@ -180,13 +225,65 @@ def home(request):
         print(dictEspConfig["Capacitor eletrolitico 1"])
         return JsonResponse(dictEspConfig["Capacitor eletrolitico 1"])
 
-    context = {}
+    # Update and create interface project positions/connections in db (received as POST from js)
+    if request.method == "POST":
+        # Request body is of type json -> Decode it and serialize
+        jsonLoad = json.loads(request.body.decode('utf8'))
+
+        if (jsonLoad['type'] == "position"):
+            # Get model class of the draggable object
+            for name, app in apps.app_configs.items():
+                if name in ['projects']:
+                    for model in app.get_models():
+                        if model.__name__ in [jsonLoad['model']]:
+                            db_class = model
+            # Update grid row and column of draggable in db
+            db_query = db_class.objects.get(name=jsonLoad['name'])
+            db_query.grid_row = jsonLoad['grid_row']
+            db_query.grid_col = jsonLoad['grid_col']
+            db_query.save()
+        if (jsonLoad['type'] == "connections"):
+            name = jsonLoad['start_name'] + '-' + jsonLoad['end_name']
+            start_type = ContentType.objects.filter(model__icontains=jsonLoad['start_type']).first()
+            end_type = ContentType.objects.filter(model__icontains=jsonLoad['end_type']).first()
+            Connection.objects.create(name=name,
+                                      start_type=start_type,
+                                      start_object_id=jsonLoad['start_obj_id'],
+                                      end_type=end_type,
+                                      end_object_id=jsonLoad['end_obj_id'])
+    # Send interface projects position from db to html
+    interface_projects_position = []
+    projects_id_in_interface = {}
+    count = 0
+    for name, app in apps.app_configs.items():
+        if name in ['projects']:
+            for model in app.get_models():
+                if not model.__name__ in ['Connection']:
+                    for object in model.objects.all():
+                        count += 1
+                        pk = object.id
+                        id = "p" + str(count)
+                        projects_id_in_interface[object.name] = id
+                        interface_projects_position.append(InterfaceProject(pk, id, object.name, model.__name__, object.grid_row, object.grid_col))
+    # Send interface connections from db to html
+    allConnections = Connection.objects.all()
+    interface_connections = []
+    for connection in allConnections:
+        startObj = connection.start_type.get_object_for_this_type(id=connection.start_object_id)
+        endObj = connection.end_type.get_object_for_this_type(id=connection.end_object_id)
+        # Get angle, scale and translation of line from class
+        id1 = projects_id_in_interface[startObj.name]
+        id2 = projects_id_in_interface[endObj.name]
+        interface_connections.append(InterfaceConnection(id1, id2, startObj.grid_row, startObj.grid_col, endObj.grid_row, endObj.grid_col))
+
+    context = {'interface_projects_position': interface_projects_position,
+               'interface_connections': interface_connections}
     response = render(request, 'core/home.html', context)
     return response
 
 def categorias(request):
     # Lista os componentes
-    categorias = Categoria.objects.order_by('-quantidade')
+    categorias = Category.objects.order_by('-quantidade')
     # (Se) Criando Painel de Armazenamento Modular:
     criar_painel_msg = painelDeArmazenamentoModular_contextMsg(request)
     # Return render
@@ -198,14 +295,14 @@ def categorias(request):
 def search(request):
     time.sleep(delayForSliderAnimation) # Wait for animation to finish
     q=request.GET['q']
-    tipodecomponentes = TipoDeComponente.objects.filter(nome__icontains=q).order_by('nome')
-    componentes = Componente.objects.none()
+    tipodecomponentes = ComponentType.objects.filter(name__icontains=q).order_by('name')
+    componentes = Component.objects.none()
     if (len(tipodecomponentes) == 0):
-        componentes = Componente.objects.filter(nome__icontains=q).order_by('nome')
+        componentes = Component.objects.filter(name__icontains=q).order_by('name')
     else:
         for tipodecomponente in tipodecomponentes:
-            componentes |= tipodecomponente.componente_set.all()
-    categorias = Categoria.objects.order_by('-quantidade')
+            componentes |= tipodecomponente.component_set.all()
+    categorias = Category.objects.order_by('-quantidade')
     context = {'componentes':componentes, 
                'categorias':categorias, 
                'tipodecomponentes':tipodecomponentes}
@@ -213,36 +310,36 @@ def search(request):
 
 def tiposdecomponentes(request, id):
     # Lista os componentes
-    tipodecomponente = TipoDeComponente.objects.filter(categoria=id).order_by('-quantidade')
-    categorias = Categoria.objects.order_by('-quantidade')
+    tipodecomponente = ComponentType.objects.filter(categoria=id).order_by('-quantidade')
+    categorias = Category.objects.order_by('-quantidade')
     # (Se) Criando Painel de Armazenamento Modular:
     criar_painel_msg = painelDeArmazenamentoModular_contextMsg(request)
     # Return render
     context = {'categorias':categorias,
                'tipodecomponentes':tipodecomponente,
-               'categoria_especifica':Categoria.objects.get(id=id),
+               'categoria_especifica':Category.objects.get(id=id),
                'id_categoria':id,
                'criar_painel_msg':criar_painel_msg}
     return render(request, 'core/tiposdecomponentes.html', context)
 
 def componentes(request, id_categoria, id):
     # Lista os componentes
-    componentes = Componente.objects.filter(tipo=id).order_by('nome')
-    categorias = Categoria.objects.order_by('-quantidade')
+    componentes = Component.objects.filter(tipo=id).order_by('name')
+    categorias = Category.objects.order_by('-quantidade')
     # (Se) Criando Painel de Armazenamento Modular:
     criar_painel_msg = painelDeArmazenamentoModular_contextMsg(request)
     # Return render
     context = {'categorias':categorias,
                'componentes': componentes,
-               'tipo_especifico':TipoDeComponente.objects.get(id=id),
+               'tipo_especifico':ComponentType.objects.get(id=id),
                'id_categoria':id_categoria,
                'id_tipo':id,
                'criar_painel_msg':criar_painel_msg}
     return render(request, 'core/componentes.html', context)
 
 def modificar(request, id_categoria, id_tipo, id):
-    componente_especifico = Componente.objects.get(id=id)
-    tipo_especifico = TipoDeComponente.objects.get(id=id_tipo)
+    componente_especifico = Component.objects.get(id=id)
+    tipo_especifico = ComponentType.objects.get(id=id_tipo)
     form = ComponenteForm(instance=componente_especifico)
     if request.method == "POST":
         form = ComponenteForm(request.POST, instance=componente_especifico)
@@ -261,6 +358,7 @@ def criarcategoria(request):
     form = CriarCategoriaForm()
     if request.method == "POST":
         form = CriarCategoriaForm(request.POST)
+        print(list(request.POST.items()))
         if form.is_valid():
             time.sleep(delayForSliderAnimation) # Wait for animation to finish
             form.save()
@@ -277,12 +375,12 @@ def criartipo(request, id):
             form.save()
             return redirect('../')
     context = {'form': form,
-               'categoria_especifica':Categoria.objects.get(id=id)}
+               'categoria_especifica':Category.objects.get(id=id)}
     return render(request, 'core/criartipo.html', context)
 
 def criarcomponente(request, id_categoria, id):
     form = CriarComponenteForm(id)
-    tipo_especifico = TipoDeComponente.objects.get(id=id)
+    tipo_especifico = ComponentType.objects.get(id=id)
     if request.method == "POST":
         form = CriarComponenteForm(id,request.POST)
         if form.is_valid():

@@ -59,7 +59,6 @@
                 <p>Nothing beats the knowledge of a thousand projects. Remember to organize every reusable component.</p>
             </div>
 
-            
             <div class="container">
                 <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
             </div>
@@ -74,39 +73,49 @@
             <h1 class="section-title">Connections</h1>
         </div>
         <div class="interface-container">
+            <canvas id="connectionCanvas" width="1100" height="500">
+            </canvas>
             <div class="interface-grid-container">
                 <div class="interface-grid">
-                    <div class="interface-item" id="p1" draggable="true">
-                        Project 1
-                    </div>
-                    <div class="interface-item" id="p2" draggable="true">
-                        Project 2
-                    </div>
-                    <div class="item-menu-baloon" id="p1">
-                        <div class="triangle-left-border"></div>
-                        <div class="triangle-left-white"></div>
-                        <ul class="item-menu" id="p1">
-                            <li><a class="btn-item-menu page" role="button">Project page</a></li>
-                            <li><a class="btn-item-menu create" role="button">Create connection</a></li>
-                            <li><a class="btn-item-menu move" role="button">Move block</a></li>
-                            <li><a class="btn-item-menu del" role="button">Delete</a></li>
-                        </ul>
-                    </div>
-                    <div class="item-menu-baloon" id="p2">
-                        <div class="triangle-left-border"></div>
-                        <div class="triangle-left-white"></div>
-                        <ul class="item-menu" id="p2">
-                            <li><a class="btn-item-menu page" role="button">Project page</a></li>
-                            <li><a class="btn-item-menu create" role="button">Create connection</a></li>
-                            <li><a class="btn-item-menu move" role="button">Move block</a></li>
-                            <li><a class="btn-item-menu del" role="button">Delete</a></li>
-                        </ul>
-                    </div>
+                    <!--Project lines-->
+                    {% for connection in interface_connections %}
+                        <div id="{{ connection.id1 }}-{{ connection.id2 }}" class="cssClass" style="position: relative; background-color: rgb(0, 0, 55); transform: rotate({{connection.angle}}rad) scale({{connection.scale}}, 0.3); left:{{connection.translate_x}}px; top:{{connection.translate_y}}px;">
+                        </div>
+                    {% endfor %}
+                    <!--Project cubes-->
+                    {% for project in interface_projects_position %}
+                        <div id="{{ project.id }}" data-model="{{ project.model }}" data-pk="{{ project.pk }}" class="interface-item" draggable="true" style="grid-row:{{ project.grid_row }};grid-column:{{ project.grid_col }};">
+                            {{ project.name }}
+                        </div>
+                    {% endfor %}
+                    <!--Project lines baloons-->
+                    {% for connection in interface_connections %}
+                        <div id="{{ connection.id1 }}-{{ connection.id2 }}" class="line-menu-baloon" >
+                            <div class="triangle-left-border"></div>
+                            <div class="triangle-left-white"></div>
+                            <ul id="{{ connection.id1 }}-{{ connection.id2 }}" class="item-menu">
+                                <li><a class="btn-item-menu page" role="button">Configure connection</a></li>
+                                <li><a class="btn-item-menu del" role="button">Delete</a></li>
+                            </ul>
+                        </div>
+                    {% endfor %}
+                    <!--Project cubes baloons-->
+                    {% for project in interface_projects_position %}
+                        <div id="{{ project.id }}" class="item-menu-baloon" style="grid-row:{{ project.grid_row }};grid-column:{{ project.grid_col }};">
+                            <div class="triangle-left-border"></div>
+                            <div class="triangle-left-white"></div>
+                            <ul id="{{ project.id }}" class="item-menu">
+                                <li><a class="btn-item-menu page" role="button">Project page</a></li>
+                                <li><a class="btn-item-menu create" role="button" data-model="{{ project.model }}" data-pk="{{ project.pk }}" data-name="{{ project.name }}" id="{{ project.id }}">Create connection</a></li>
+                                <li><a class="btn-item-menu del" role="button">Delete</a></li>
+                            </ul>
+                        </div>
+                    {% endfor %}
                 </div>
                 <div class="interface-projects">
                     <p>Projects list selector</p>
                 </div>
-            </div>
+            </div>            
         </div>
 
         <!-------------------- DASHBOARD -------------------->

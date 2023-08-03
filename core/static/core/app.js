@@ -48,27 +48,63 @@ function changePage(url) {
 }
 // ------------------
 // ============ GSAP animations ============
-// ------ Home pannel interface ------
-const draggables = document.querySelectorAll('.interface-item')
-const containers = document.querySelectorAll('.interface-grid')
+// ------ Home panel interface ------
+let draggables = document.querySelectorAll('.interface-item')
+let interface_grid = document.querySelector('.interface-grid')
+let connection_canvas = document.getElementById('connectionCanvas')
+let interface_container = document.querySelector('.interface-container')
+let btns_connection = document.querySelectorAll('.btn-item-menu.create')
+let selectingConnection = false
 let baloonIsOpen = false
 let currentRow = 1
 let currentCol = 1
+let project1_name = "" // Connection line
+let project1_pk = 1 // Connection line
+let project1_model = 1 // Connection line
+let project2_name = "" // Connection line
+let project2_pk = 1 // Connection line
+let project2_model = 1 // Connection line
 
+// Drag items, open/close grid view, open item baloon and stop connection line
 draggables.forEach(draggable => {
+    // Start dragging and open grid view
     draggable.addEventListener('dragstart', () => {
+        // Get current row and col
         let fullStyle = getComputedStyle(draggable)
         currentRow = parseInt(fullStyle["gridRowStart"])
         currentCol = parseInt(fullStyle["gridColumnStart"])
         draggable.classList.add('dragging')
+
+        // Open grid view
+        const interface_grid = document.querySelector(".interface-grid-container")
+        const state = Flip.getState(interface_grid, {props: "background"})
+        interface_grid.classList.add("active")
+        Flip.from(state, {
+            duration: 2,
+            ease: "expo.out"
+        })
     })
 
-    draggable.addEventListener('dragend', e => {
-        //draggable.classList.remove('dragging')
+    // Close grid view
+    draggable.addEventListener('dragend', () => {
+        const interface_grid = document.querySelector(".interface-grid-container")
+        const state = Flip.getState(interface_grid, {props: "background"})
+        interface_grid.classList.remove("active")
+        Flip.from(state, {
+            duration: 0.3,
+            ease: "expo.out"
+        })
     })
 
+    // Open baloon and stop connection
     draggable.addEventListener('click', () => {
-        if (!baloonIsOpen) {
+        // Open baloon
+        if (!baloonIsOpen && !selectingConnection) {
+            // Get current row and col
+            let fullStyle = getComputedStyle(draggable)
+            currentRow = parseInt(fullStyle["gridRowStart"])
+            currentCol = parseInt(fullStyle["gridColumnStart"])
+
             let baloonActive = 0
             let projectClicked = draggable.id
             let draggableList = document.getElementsByClassName("item-menu-baloon")
@@ -88,11 +124,79 @@ draggables.forEach(draggable => {
                 onStart: () => { baloonIsOpen = true }
             })
         }
+        // Finish connection
+        else if (selectingConnection) {
+            selectingConnection = false
+
+            // --------------- Calculate position and draw line with canvas ---------------
+            // Init canvas
+            const [canvas, ctx] = clearAndLoadCanvas()
+            // Get new clicked row and col
+            let fullStyle = getComputedStyle(draggable)
+            const newRow = parseInt(fullStyle["gridRowStart"])
+            const newCol = parseInt(fullStyle["gridColumnStart"])
+            // Calculate end x and y
+            const x_start = (currentCol*50)-25
+            const y_start = (currentRow*50)-25
+            const x_end = (newCol*50)-25
+            const y_end = (newRow*50)-25
+            // Draw line
+            drawConnection(canvas,ctx,x_end,y_end)
+
+            // --------------- Draw line with div and style ---------------
+            let lineName = project1_id+'-'+draggable.id
+            let lineElement = document.getElementById(lineName)
+            if (!lineElement) {
+                // Add html element to represent line
+                const newDiv = document.createElement("div");
+                newDiv.setAttribute("id", lineName)
+                interface_grid.prepend(newDiv)
+            }
+            // Calculate middle point between newRow, newCol and currentRow, currentCol
+            // Calculate angle between newRow, newCol and currentRow, currentCol
+            // Calculate scale between newRow, newCol and currentRow, currentCol
+            const dist_ver = Math.abs(newRow-currentRow)
+            const dist_hor = Math.abs(newCol-currentCol)
+            let position_y = Math.min(y_start,y_end) + 25*dist_ver
+            let position_x = Math.min(x_start,x_end) + 25*dist_hor
+            let translate_y = (position_y-25).toString()
+            let translate_x = (position_x-25).toString()
+            let angle = (Math.atan(dist_ver/dist_hor)).toString()
+            if (y_start > y_end) angle = -angle
+            if (x_start > x_end) angle = -angle
+            const scale = Math.sqrt(Math.pow(dist_ver,2) + Math.pow(dist_hor,2))
+            // To add style attributes
+            var style = document.createElement('style');
+            style.type = 'text/css'
+            style.innerHTML = '.cssClass { position: relative; background-color: rgb(0, 0, 55); transform: rotate('+angle+'rad) scale('+scale+', 0.3); left: '+translate_x+'px; top:'+translate_y+'px; }';
+            document.getElementsByTagName('head')[0].appendChild(style);
+            document.getElementById(lineName).className = 'cssClass';
+
+            // --------------- Add connection to data base ---------------
+            project2_name = draggable.innerHTML.trim()
+            project2_pk = draggable.dataset.pk
+            project2_model = draggable.dataset.model
+            // Make post request to create
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://192.168.56.1:8080/");
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            let data = `{"type": "connections",
+                         "start_name": "`+project1_name+`",
+                         "start_type":"`+project1_model+`",
+                         "start_obj_id":"`+project1_pk+`",
+                         "end_name": "`+project2_name+`",
+                         "end_type":"`+project2_model+`",
+                         "end_obj_id":"`+project2_pk+`"}`;
+            xhr.send(data);
+        }
     })
 })
 
-containers.forEach(container => {
-    container.addEventListener('click', () => {
+// Close baloon and draw connection line
+if(interface_container) {
+    // Close baloon
+    interface_container.addEventListener('click', () => {
         if (baloonIsOpen) {
             let baloonToClose = document.getElementsByClassName('item-menu-baloon active')[0];
 
@@ -106,9 +210,27 @@ containers.forEach(container => {
                 onStart: () => { baloonIsOpen = false }
             })
         }
-    }); 
+    })
 
-    container.addEventListener('dragend', e => {
+    // Draw connection line
+    interface_container.addEventListener('mousemove', e => {
+        if(selectingConnection) {
+            // Init canvas
+            const [canvas, ctx] = clearAndLoadCanvas()
+            ctx.isPointInPath
+            // Get mouse postion
+            var rect = canvas.getBoundingClientRect();
+            const x_end = e.clientX - rect.left
+            const y_end = e.clientY - rect.top
+            // Draw line from block to mouse
+            drawConnection(canvas,ctx,x_end,y_end)
+        }
+    })
+}
+
+// Update position of dragged item
+if (interface_grid) {
+    interface_grid.addEventListener('dragend', e => {
         e.preventDefault()
         const draggable = document.querySelector('.dragging');
         let projectClicked = draggable.id
@@ -135,9 +257,57 @@ containers.forEach(container => {
         draggable.style.gridRow = newRow
         draggable.style.gridColumn = newCol
         baloonToUpdate.style.gridRow = newRow
-        baloonToUpdate.style.gridColumn = newCol        
+        baloonToUpdate.style.gridColumn = newCol
+        
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://192.168.56.1:8080/");
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", "application/json");
+        let data = `{"type": "position", "model":"`+draggable.dataset.model+`", "name": "`+draggable.innerHTML.trim()+`", "grid_row": `+newRow+`, "grid_col": `+newCol+`}`;
+        xhr.send(data);
+    })
+}
+
+// Start drawing the connection line
+btns_connection.forEach(btn => {
+    btn.addEventListener("click", () => {
+        selectingConnection = true
+        project1_id = btn.id
+        project1_name = btn.dataset.name
+        project1_pk = btn.dataset.pk
+        project1_model = btn.dataset.model
     })
 })
+
+function clearAndLoadCanvas() {
+    // Start canvas
+    const canvas = document.getElementById('connectionCanvas')
+    if (!canvas.getContext) { return; }
+    const ctx = canvas.getContext('2d');
+
+    // Clear Canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw other canvas lines
+    // ...
+
+    return [canvas,ctx]
+}
+
+function drawConnection(canvas,ctx,x_end,y_end) {
+    ctx.beginPath();
+    ctx.moveTo((currentCol*50)-25, (currentRow*50)-25);
+
+    ctx.strokeStyle = 'rgb(0, 0, 0)';
+    ctx.lineWidth = 10;
+    ctx.lineTo(x_end, y_end);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgb(235, 55, 55)';
+    ctx.lineWidth = 8;
+    ctx.lineTo(x_end, y_end);
+    ctx.stroke();
+}
 
 // ------ Home Card Projects ------
 const cards = document.querySelectorAll(".card");
