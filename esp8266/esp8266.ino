@@ -9,58 +9,71 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
+#include <Dictionary.h>
 #include <WiFiClient.h>
 #include <Wire.h>
 #include <SPI.h>
 #include "Button2.h";
+#define len(arr) sizeof (arr)/sizeof (arr[0])
 
 // ========================================================================
 // ======== Configurações a serem recebidas do ESP de configuração ========
 // ========================================================================
-// Definições do Wifi
+// -------- Definições do Wifi --------
 #ifndef STASSID
-#define STASSID "Toriko" //"RIBEIRAO 2G"
-#define STAPSK  "12345678" //"r24e56g18"
+#define STASSID "RIBEIRAO 2.4G" // "Toriko"
+#define STAPSK  "r28e61g23" // "12345678"
 #endif
-// Definições de conexão com o servidor
-#define SERVER_NAME "http://192.168.43.83:8080"
-// Definições do I2C
-#define MODULO_1 "Capacitor eletrolitico 1"
-#define MODULO_2 "Capacitor eletrolitico 2"
-typedef struct {
-  String type;
-  int addr;
-}  moduleProprieties;
-// Ordem: esquerda para direita, de cima para baixo
-moduleProprieties modules[2] = { {MODULO_1, 0x22},   // 0x44 (Pic) >>> 0x22 // Placa 1 (mais antiga)
-                                 {MODULO_2, 0x59} }; // 0xB2 (Pic) >>> 0x59 // Placa 2 (mais recente)
-const int numModules = sizeof(modules) / sizeof(modules[0]);
-// Definições do MQTT
-#define MQTT_BROKER "192.168.43.83"
+// -------- Definições do servidor --------
+#define SERVER_NAME "http://192.168.15.16:8080"
+#define BASE "Painel Base 1"
+#define BASE_ID "2"
+#define MODULO_1 "Capacitor Eletrolitico 1"
+#define MODULO_1_ID "3"
+#define MODULO_1_ADDR "22" // 0x44 (Pic) >>> 0x22 (Esp) // Placa 1 (mais antiga)
+#define MODULO_2 "Capacitor Eletrolitico 2"
+#define MODULO_2_ID "4"
+#define MODULO_2_ADDR "59" // 0xB2 (Pic) >>> 0x59 (Esp) // Placa 2 (mais recente)
+// Identifica os projectos (base + todos os painéis conectados)
+Dictionary &projectIds = *(new Dictionary(3));
+
+// -------- Definições do I2C --------
+// Identifica os painéis e seus endereços I2C. Ordem: esquerda para direita, de cima para baixo
+Dictionary &moduleAddrs = *(new Dictionary(2));
+int numModules;
+
+// -------- Definições do MQTT --------
+#define MQTT_BROKER "192.168.15.16"
 #define MQTT_PORT 1883
-#define PROJECT_ID "/2"
-class ComunicacaoTopicos {
+
+class CommunicationTopic {
   public:
-    String topico   = "Comunicacao";
-    String conexoes = "Comunicacao/Conexoes";
+    String communication = "Communication";
+    String connection = "Connection";
 }
-COMUNICACAO_TOPIC = ComunicacaoTopicos();
-class PainelArmazenamentoModularTopicos {
+COMMUNICATION_TOPIC = CommunicationTopic();
+class ModularStoragePanelBaseTopic {
   public: 
-    String topico          = "PainelArmazenamentoModular";
-    String modulo          = "PainelArmazenamentoModular/Modulo";
-    String disp            = "PainelArmazenamentoModular/Display";
-    String banco           = "PainelArmazenamentoModular/BancoDeDados";
-    String componente      = "PainelArmazenamentoModular/BancoDeDados/Componente";
-    String funcionalidades = "PainelArmazenamentoModular/BancoDeDados/Funcionalidades";
+    String project   = "ModularStoragePanelBase";
+    String module    = "Module";
+    String outScreen = "Outputs/Screen";
 }
-PAINEL_TOPIC = PainelArmazenamentoModularTopicos();
-String subscriptionList[5] = {PAINEL_TOPIC.modulo          + "/#",
-                              PAINEL_TOPIC.disp            + "/#",
-                              PAINEL_TOPIC.componente      + "/#",
-                              PAINEL_TOPIC.funcionalidades + "/#",
-                              COMUNICACAO_TOPIC.conexoes   + "/#"};
-const int numSubscriptions = sizeof(subscriptionList) / sizeof(subscriptionList[0]);
+PANEL_BASE_TOPIC = ModularStoragePanelBaseTopic();
+class ModularStoragePanelTopic {
+  public: 
+    String project       = "ModularStoragePanel";
+    String configuration = "Configuration";
+    String outDisplay    = "Outputs/Display";
+}
+PANEL_TOPIC = ModularStoragePanelTopic();
+String subscriptionList[7] = {PANEL_BASE_TOPIC.project + "/" + BASE + "/" + PANEL_BASE_TOPIC.module + "/#",
+                              PANEL_BASE_TOPIC.project + "/" + BASE + "/" + PANEL_BASE_TOPIC.outScreen + "/#",
+                              PANEL_TOPIC.project + "/" + MODULO_1 + "/" + PANEL_TOPIC.configuration + "/#",
+                              PANEL_TOPIC.project + "/" + MODULO_1 + "/" + PANEL_TOPIC.outDisplay + "/#",
+                              PANEL_TOPIC.project + "/" + MODULO_2 + "/" + PANEL_TOPIC.configuration + "/#",
+                              PANEL_TOPIC.project + "/" + MODULO_2 + "/" + PANEL_TOPIC.outDisplay + "/#",
+                              COMMUNICATION_TOPIC.communication + "/" + COMMUNICATION_TOPIC.connection + "/#"}; // No project name cause requester identfies the connection
+const int numSubscriptions = len(subscriptionList);
 // ========================================================================
 
 // Definições de identificadores na comunicação I2C
@@ -73,8 +86,8 @@ const int numSubscriptions = sizeof(subscriptionList) / sizeof(subscriptionList[
 
 // Definições de pinagem
 /* I2C */
-#define SDA_I2C_PIN D2 // Default pin
-#define SCL_I2C_PIN D1 // Default pin
+#define SDA_I2C_PIN D2 // Default pin (green)
+#define SCL_I2C_PIN D1 // Default pin (yellow)
 /* Encoder */
 #define ROTARY_PIN1       3  // Pino RX -> CLK
 #define ROTARY_PIN2       D4 // -> DT
@@ -124,12 +137,14 @@ volatile int selectedQuantity = 0;
 volatile byte selectedQttLast = 0;
 volatile byte selectedLedLast  = 1;
 volatile byte selectedModuleLast = 1;
+String quantity_arr;
+String limit_arr;
 
 volatile bool btn_click = false;
 volatile bool btn_reset = false;
 volatile byte loop_counter = 0;
 
-StaticJsonDocument<512> jsonConfig;
+StaticJsonDocument<1024> jsonConfig;
 
 // Declaração de funções
 void rotaryInterrupt();
@@ -172,16 +187,18 @@ void init_wifi(){
   }
 }
 
-void establish_i2c() {
-  for (int module = 0; module < numModules; module++) {
-    String limit_arr = get_limit_array(module);
-    String return_msg = post_all_limits(limit_arr, module);
-  }
-}
-
 // ================================================
 // =============== MQTT Functions =================
 // ================================================
+
+unsigned long hexStrToInt(String str) {
+   char buffer [256];
+   unsigned long ul;
+   str.toCharArray(buffer, str.length() + 1);
+   ul = strtoul(buffer, 0, 16);
+   return ul;
+}
+
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
   // Payload to String conversion
   int i = 0;
@@ -192,25 +209,62 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
   strArrayPayload[i] = 0;
   // Array of char with null termination = String
 
+  // Split topic string
   String topicString = String(topic);
-  // Mensagem recebida para determinar o módulo selecionado
-  if (topicString.indexOf(PAINEL_TOPIC.modulo) >= 0 && topicString.substring(PAINEL_TOPIC.modulo.length()) != PROJECT_ID) { 
-    // ATUALIZAR MODULO SELECIONADO  
+  String topicStringToSplit = String(topic);
+  String topicSplitString[20];
+  String lastTopicSplitString;
+  int StringCount = 0;
+  while (topicStringToSplit.length() > 0) {
+    int index = topicStringToSplit.indexOf("/");
+    if (index == -1) // No / found
+    {
+      topicSplitString[StringCount++] = topicStringToSplit;
+      lastTopicSplitString = topicStringToSplit;
+      break;
+    }
+    else
+    {
+      topicSplitString[StringCount++] = topicStringToSplit.substring(0, index);
+      topicStringToSplit = topicStringToSplit.substring(index+1);
+    }
   }
-  if (topicString.indexOf(PAINEL_TOPIC.componente) >= 0 && topicString.substring(PAINEL_TOPIC.componente.length()) != PROJECT_ID) {   
-    deserializeJson(jsonConfig, strArrayPayload); // Modifica a string original
-    
-    const char* id1 = jsonConfig["1. 1uF"]["ID"];
-    mqtt.publish("Result", strArrayPayload);
+
+  // If message received was not published by itself
+  if (lastTopicSplitString != BASE_ID) {
+    // ModularStoragePanelBase
+    if (topicString.indexOf(PANEL_BASE_TOPIC.project) >= 0) {
+      // Module
+      if (topicString.indexOf(PANEL_BASE_TOPIC.module) >= 0) selectedModule = atoi(strArrayPayload);
+      // Screen
+      if (topicString.indexOf(PANEL_BASE_TOPIC.outScreen) >= 0) { }
+    }
+    // ModularStoragePanel
+    if (topicString.indexOf(PANEL_TOPIC.project) >= 0) {
+      // Configuration
+      if (topicString.indexOf(PANEL_TOPIC.configuration) >= 0) {
+        String requested_project_name = topicSplitString[1];
+        String requester_project_number = topicSplitString[3];
+        String requested_id_str = projectIds[requested_project_name];
+        int requested_id = hexStrToInt(requested_id_str);
+        
+        deserializeJson(jsonConfig, payload, length); // Modifica a string original
+        get_limit_array();
+        get_quantity_array();
+        post_all_limits(limit_arr, requested_id);
+        post_all_quantities(quantity_arr, requested_id);
+      }
+    }
   }
+  
 }
 
 void mqtt_reconnect() {
-  String clientId = "ESP8266Client-1";
-  //clientId += String(random(0xffff), HEX);
-  
-  mqtt.connect(clientId.c_str());
-  mqtt_resubscribe();
+  String clientId = BASE; 
+  if (mqtt.connect(clientId.c_str())) {
+    mqtt.setBufferSize(1024);
+    mqtt_resubscribe();
+  }
 }
 
 void mqtt_resubscribe() {
@@ -257,6 +311,8 @@ void post_slave_update_from_server(String word1, String word2, String word3, cha
   String msg;
   char buff[22];
 
+  DynamicJsonDocument jsonConfig(1024); // delete
+
   // Transforma a String da informação a ser enviada em Char
   msg = String(jsonConfig[word2][word3]);
   msg = msg_id + msg + msg_id;
@@ -264,13 +320,10 @@ void post_slave_update_from_server(String word1, String word2, String word3, cha
 
   // Começo da transmissão I2C com o escravo
   Wire.beginTransmission(addr);
-
   // Envia identificador da mensagem e a mensagem
   Wire.write(buff);
-
   // Fim da transmissão I2C com o escravo
   Wire.endTransmission();
-
   delay(50);
 }
 
@@ -282,13 +335,10 @@ void post_slave_update_from_esp(String pkg, char* msg_id, const int addr) {
 
   // Começo da transmissão I2C com o escravo
   Wire.beginTransmission(addr);
-  
   // Envia identificador da mensagem e a mensagem
   Wire.write(buff);
-
   // Fim da transmissão I2C com o escravo
   Wire.endTransmission();
-
   delay(50);
 }
 
@@ -312,29 +362,37 @@ String get_slave_update(const int addr, const int bytes) {
 // ================================================
 
 String post_current_time(int module) { 
+  String module_addr_str = moduleAddrs[module-1];
+  int module_addr = hexStrToInt(module_addr_str);
   // Envia hora para o escravo e retorna
-  post_slave_update_from_server("Funcionalidades", "Horario", "Atual", id_Hora, modules[module].addr);
+  post_slave_update_from_esp("1234", id_Hora, module_addr);
   //return get_slave_update(modules[selectedModule-1].addr, 6);
   return "";
 }
 
 String post_deselect() {
   String msg = "0";
-  post_slave_update_from_esp(msg, id_Slct, modules[selectedModuleLast-1].addr);
+  String module_addr_str = moduleAddrs[selectedModuleLast-1];
+  int module_addr = hexStrToInt(module_addr_str);
+  post_slave_update_from_esp(msg, id_Slct, module_addr);
   //return get_slave_update(modules[selectedModuleLast-1].addr, 6);
   return "";
 }
 
 String post_selection_mode() {
   String msg = String(selectionMode);
-  post_slave_update_from_esp(msg, id_Slct, modules[selectedModule-1].addr);
+  String module_addr_str = moduleAddrs[selectedModule-1];
+  int module_addr = hexStrToInt(module_addr_str);
+  post_slave_update_from_esp(msg, id_Slct, module_addr);
   //return get_slave_update(modules[selectedModule-1].addr, 6);
   return "";
 }
 
 String post_selected_led() {
   String msg = String(selectedLed);
-  post_slave_update_from_esp(msg, id_Comp, modules[selectedModule-1].addr);
+  String module_addr_str = moduleAddrs[selectedModule-1];
+  int module_addr = hexStrToInt(module_addr_str);
+  post_slave_update_from_esp(msg, id_Comp, module_addr);
   //return get_slave_update(modules[selectedModule-1].addr, 6);
   return "";
 }
@@ -343,19 +401,25 @@ String post_quantity(int current_quantity) {
   String msg = "00";
   if (current_quantity < 10) msg = "0" + String(current_quantity);
   else if (current_quantity < 100) msg = String(current_quantity);
-  post_slave_update_from_esp(msg, id_Qtd, modules[selectedModule-1].addr);
+  String module_addr_str = moduleAddrs[selectedModule-1];
+  int module_addr = hexStrToInt(module_addr_str);
+  post_slave_update_from_esp(msg, id_Qtd, module_addr);
   //return get_slave_update(modules[selectedModule-1].addr, 6);
   return "";
 }
 
 String post_all_quantities(String qtt_arr, int module) {
-  post_slave_update_from_esp(qtt_arr, id_AQtd, modules[module].addr);
+  String module_addr_str = moduleAddrs[module-1];
+  int module_addr = hexStrToInt(module_addr_str);
+  post_slave_update_from_esp(qtt_arr, id_AQtd, module_addr);
   //return get_slave_update(modules[selectedModule-1].addr, 20);
   return "";
 }
 
 String post_all_limits(String lim_arr, int module) {
-  post_slave_update_from_esp(lim_arr, id_Lim, modules[module].addr);
+  String module_addr_str = moduleAddrs[module-1];
+  int module_addr = hexStrToInt(module_addr_str);
+  post_slave_update_from_esp(lim_arr, id_Lim, module_addr);
   //return get_slave_update(modules[module].addr, 20);
   return "";
 }
@@ -397,19 +461,19 @@ void button_changes() {
 // ============ Json config functions =============
 // ================================================
 
-String get_quantity_array(int module) {
+void get_quantity_array() {
   JsonObject root = jsonConfig.as<JsonObject>();
   String quantidade_str = "000000000000000000";
-  String categoria, componente, quantidade;
+  String categoria, componente;
   int j, compartimento;
+  const char* quantidade;
 
   for (JsonPair key_value : root) {
-    componente = key_value.key().c_str();
-    componente = componente.substring(1,componente.length()-1);
+    componente = String(key_value.key().c_str());
 
     compartimento = componente.substring(0,2).toInt();
     quantidade = jsonConfig[componente]["Qtd"];
-    if (quantidade.toInt() < 10) {
+    if (atoi(quantidade) < 10) {
       quantidade_str[2*compartimento-2] = '0';
       quantidade_str[2*compartimento-1] = quantidade[0];
     }
@@ -418,23 +482,24 @@ String get_quantity_array(int module) {
       quantidade_str[2*compartimento-1] = quantidade[1];
     }
   }
-
-  return quantidade_str;
+  
+  quantity_arr = quantidade_str;
+  return ;
 }
 
-String get_limit_array(int module) {
+void get_limit_array() {
   JsonObject root = jsonConfig.as<JsonObject>();
   String limite_str = "000000000000000000";
-  String categoria, componente, limite;
+  String categoria, componente;
   int j, compartimento;
+  const char* limite;
 
   for (JsonPair key_value : root) {
-    componente = key_value.key().c_str();
-    componente = componente.substring(1,componente.length()-1);
+    componente = String(key_value.key().c_str());
 
     compartimento = componente.substring(0,2).toInt();
     limite = jsonConfig[componente]["Lim"];
-    if (limite.toInt() < 10) {
+    if (atoi(limite) < 10) {
       limite_str[2*compartimento-2] = '0';
       limite_str[2*compartimento-1] = limite[0];
     }
@@ -442,9 +507,10 @@ String get_limit_array(int module) {
       limite_str[2*compartimento-2] = limite[0];
       limite_str[2*compartimento-1] = limite[1];
     }
-  }
-
-  return limite_str;
+  }  
+  
+  limit_arr = limite_str;
+  return ;
 }
 
 /*
@@ -577,24 +643,34 @@ void setup() {
   delay(250);
   // ==========================================
   
-  // ============= Initializations setup ============= 
+  // ============= Initializations setup =============
+  // Projects ids dictionary
+  projectIds(BASE, BASE_ID);
+  projectIds(MODULO_1, MODULO_1_ID);
+  projectIds(MODULO_2, MODULO_2_ID);
+  // Modules addresses dictionary
+  moduleAddrs(MODULO_1, MODULO_1_ADDR); 
+  moduleAddrs(MODULO_2, MODULO_2_ADDR);
+  numModules = moduleAddrs.count();
   // Configure screen for main menu
   update_screen_values();
   // Begin I2C communication
   Wire.begin(SDA_I2C_PIN, SCL_I2C_PIN);
-  // Establish I2C connection with every slave and send quantities limits
-  establish_i2c();
   // Set callback function of MQTT for receiving messages, check state and subscribe
   mqtt.setCallback(mqtt_callback);
-  mqtt_resubscribe();
+  //mqtt_resubscribe();
   delay(250);
 }
 
 void loop() {
-  static String quantity_arr;
-
-  if (!mqtt.connected()) mqtt_reconnect();
-  mqtt.loop();
+  bool mqttConnected = mqtt.connected();
+  
+  if (!mqttConnected) {
+    mqtt_reconnect();//------------------------------------------------------>
+    String topic = COMMUNICATION_TOPIC.communication + "/" + COMMUNICATION_TOPIC.connection + "/" + BASE_ID;
+    mqtt.publish(topic.c_str(), "ON");
+  }
+  mqtt.loop();//------------------------------------------------------>
   
   btnRotary.loop(); // Checa estado do botão
   if (loop_counter > 10) { // Checa 10 vezes antes de decidir
@@ -607,17 +683,19 @@ void loop() {
 
   rotaryInterrupt();
 
-  if((millis() - millisTarefa1) > update_time){
-     for (int module = 0; module < numModules; module++) {
-      quantity_arr = get_quantity_array(module);
-      post_all_quantities(quantity_arr, module);
+  //------------------------------------------------------>
+  if((millis() - millisTarefa1) > update_time and mqttConnected){
+     for (int module = 1; module <= numModules; module++) {
+      // Request from server json config response of the specific panel
+      String topic = PANEL_TOPIC.project + "/" + projectIds(module) + "/" + PANEL_TOPIC.configuration + "/" + BASE_ID;
+      mqtt.publish(topic.c_str(), "Request");
       post_current_time(module);
      }  
-     update_time = 6000;
+     update_time = 10000;
      millisTarefa1 = millis();
   }
 
-
+  /*  
   if (send_deselect_module and send_tries < SEND_TENTATIVES) {
     millisTarefa1 = millis();
     String return_msg = post_deselect();
@@ -701,7 +779,7 @@ void loop() {
         jsonConfig[componente]["Quantidade"] = selectedQuantity;
     }
 
-    post_server_update();
+    //post_server_update();
     selectionMode = 2;
     send_selection_mode = true;
     quantity_arr = get_quantity_array(selectedModule-1);
@@ -710,6 +788,8 @@ void loop() {
     send_server_update = false;
     update_screen_values();
   }
+  */
+  //------------------------------------------------------>
 
 }
 

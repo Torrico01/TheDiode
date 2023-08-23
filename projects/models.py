@@ -4,6 +4,7 @@ from django.db import models
 
 class ModularStoragePanelBase(models.Model):
     name = models.CharField(max_length=200, null=True, unique=True)
+    module = models.PositiveIntegerField(default=0, verbose_name="Module selected")
     # Base - Outputs
     display_oled = models.TextField(blank=True, null=True, verbose_name="(Output) Display OLED 0.96'")
     # Base - Inputs

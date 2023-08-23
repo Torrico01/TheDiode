@@ -79,35 +79,35 @@
                 <div class="interface-grid">
                     <!--Project lines-->
                     {% for connection in interface_connections %}
-                        <div id="{{ connection.id1 }}-{{ connection.id2 }}" class="cssClass" style="position: relative; background-color: rgb(0, 0, 55); transform: rotate({{connection.angle}}rad) scale({{connection.scale}}, 0.3); left:{{connection.translate_x}}px; top:{{connection.translate_y}}px;">
+                        <div id="{{ connection.id1 }}-{{ connection.id2 }}-line" class="line-connection" style="position: relative; background-color: rgb(0, 0, 55); grid-row:{{ connection.start_grid_row }}; grid-column:{{ connection.start_grid_col }}; transform: rotate({{ connection.angle }}rad) scale({{ connection.scale }}, 0.3); left:{{ connection.translate_x }}px; top:{{ connection.translate_y }}px;">
                         </div>
                     {% endfor %}
-                    <!--Project cubes-->
+                    <!--Project items-->
                     {% for project in interface_projects_position %}
-                        <div id="{{ project.id }}" data-model="{{ project.model }}" data-pk="{{ project.pk }}" class="interface-item" draggable="true" style="grid-row:{{ project.grid_row }};grid-column:{{ project.grid_col }};">
+                        <div id="{{ project.id }}-item" class="interface-item" data-model="{{ project.model }}" data-pk="{{ project.pk }}" draggable="true" style="grid-row:{{ project.grid_row }}; grid-column:{{ project.grid_col }};">
                             {{ project.name }}
                         </div>
                     {% endfor %}
-                    <!--Project lines baloons-->
+                    <!--Project lines balloons-->
                     {% for connection in interface_connections %}
-                        <div id="{{ connection.id1 }}-{{ connection.id2 }}" class="line-menu-baloon" >
+                        <div id="{{ connection.id1 }}-{{ connection.id2 }}-baloon" class="line-menu-baloon" style="grid-row:{{ connection.middle_grid_row }}; grid-column:{{ connection.middle_grid_col }};">
                             <div class="triangle-left-border"></div>
                             <div class="triangle-left-white"></div>
-                            <ul id="{{ connection.id1 }}-{{ connection.id2 }}" class="item-menu">
-                                <li><a class="btn-item-menu page" role="button">Configure connection</a></li>
-                                <li><a class="btn-item-menu del" role="button">Delete</a></li>
+                            <ul id="{{ connection.id1 }}-{{ connection.id2 }}" class="line-menu">
+                                <li><a class="btn-menu page" role="button">Configure connection</a></li>
+                                <li><a class="btn-menu line del" role="button" id="{{ connection.id1 }}-{{ connection.id2 }}" data-start_name="{{ connection.start_name }}" data-end_name="{{ connection.end_name }}">Delete</a></li>
                             </ul>
                         </div>
                     {% endfor %}
-                    <!--Project cubes baloons-->
+                    <!--Project items balloons-->
                     {% for project in interface_projects_position %}
-                        <div id="{{ project.id }}" class="item-menu-baloon" style="grid-row:{{ project.grid_row }};grid-column:{{ project.grid_col }};">
+                        <div id="{{ project.id }}-baloon" class="item-menu-baloon" style="grid-row:{{ project.grid_row }}; grid-column:{{ project.grid_col }};">
                             <div class="triangle-left-border"></div>
                             <div class="triangle-left-white"></div>
                             <ul id="{{ project.id }}" class="item-menu">
-                                <li><a class="btn-item-menu page" role="button">Project page</a></li>
-                                <li><a class="btn-item-menu create" role="button" data-model="{{ project.model }}" data-pk="{{ project.pk }}" data-name="{{ project.name }}" id="{{ project.id }}">Create connection</a></li>
-                                <li><a class="btn-item-menu del" role="button">Delete</a></li>
+                                <li><a class="btn-menu page" role="button">Project page</a></li>
+                                <li><a class="btn-menu create" role="button" id="{{ project.id }}" data-model="{{ project.model }}" data-pk="{{ project.pk }}" data-name="{{ project.name }}">Create connection</a></li>
+                                <li><a class="btn-menu item del" role="button">Delete</a></li>
                             </ul>
                         </div>
                     {% endfor %}

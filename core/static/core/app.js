@@ -50,20 +50,22 @@ function changePage(url) {
 // ============ GSAP animations ============
 // ------ Home panel interface ------
 let draggables = document.querySelectorAll('.interface-item')
+let connections = document.querySelectorAll('.line-connection')
 let interface_grid = document.querySelector('.interface-grid')
 let connection_canvas = document.getElementById('connectionCanvas')
 let interface_container = document.querySelector('.interface-container')
-let btns_connection = document.querySelectorAll('.btn-item-menu.create')
+let btns_connection = document.querySelectorAll('.btn-menu.create')
+let btns_line_del = document.querySelectorAll('.btn-menu.line.del')
 let selectingConnection = false
 let baloonIsOpen = false
-let currentRow = 1
-let currentCol = 1
+let currentRow = -1
+let currentCol = -1
 let project1_name = "" // Connection line
-let project1_pk = 1 // Connection line
-let project1_model = 1 // Connection line
+let project1_pk = -1 // Connection line
+let project1_model = -1 // Connection line
 let project2_name = "" // Connection line
-let project2_pk = 1 // Connection line
-let project2_model = 1 // Connection line
+let project2_pk = -1 // Connection line
+let project2_model = -1 // Connection line
 
 // Drag items, open/close grid view, open item baloon and stop connection line
 draggables.forEach(draggable => {
@@ -96,24 +98,20 @@ draggables.forEach(draggable => {
         })
     })
 
-    // Open baloon and stop connection
+    // Open item baloon and stop connection
     draggable.addEventListener('click', () => {
-        // Open baloon
+        // Open item baloon
         if (!baloonIsOpen && !selectingConnection) {
-            // Get current row and col
+            // Get clicked item start row and col
             let fullStyle = getComputedStyle(draggable)
             currentRow = parseInt(fullStyle["gridRowStart"])
             currentCol = parseInt(fullStyle["gridColumnStart"])
 
-            let baloonActive = 0
-            let projectClicked = draggable.id
-            let draggableList = document.getElementsByClassName("item-menu-baloon")
+            // Get baloon of clicked item
+            let projectClicked = draggable.id.split("-")[0]
+            let baloonActive = document.getElementById(projectClicked+'-baloon')
 
-            // Find baloon of clicked project
-            for (let drag of draggableList) {
-                if (drag.id === projectClicked) { baloonActive = drag }
-            }
-
+            // Animate baloon pop-up
             const state = Flip.getState(baloonActive, {props: "opacity,transform"});
             baloonActive.classList.add("active");
             Flip.from(state, {
@@ -129,7 +127,7 @@ draggables.forEach(draggable => {
             selectingConnection = false
 
             // --------------- Calculate position and draw line with canvas ---------------
-            // Init canvas
+            // Init/clear canvas
             const [canvas, ctx] = clearAndLoadCanvas()
             // Get new clicked row and col
             let fullStyle = getComputedStyle(draggable)
@@ -141,17 +139,9 @@ draggables.forEach(draggable => {
             const x_end = (newCol*50)-25
             const y_end = (newRow*50)-25
             // Draw line
-            drawConnection(canvas,ctx,x_end,y_end)
+            //drawConnection(canvas,ctx,x_end,y_end)
 
             // --------------- Draw line with div and style ---------------
-            let lineName = project1_id+'-'+draggable.id
-            let lineElement = document.getElementById(lineName)
-            if (!lineElement) {
-                // Add html element to represent line
-                const newDiv = document.createElement("div");
-                newDiv.setAttribute("id", lineName)
-                interface_grid.prepend(newDiv)
-            }
             // Calculate middle point between newRow, newCol and currentRow, currentCol
             // Calculate angle between newRow, newCol and currentRow, currentCol
             // Calculate scale between newRow, newCol and currentRow, currentCol
@@ -161,16 +151,50 @@ draggables.forEach(draggable => {
             let position_x = Math.min(x_start,x_end) + 25*dist_hor
             let translate_y = (position_y-25).toString()
             let translate_x = (position_x-25).toString()
+            translate_y = 25*(newRow-currentRow)
+            translate_x = 25*(newCol-currentCol)
             let angle = (Math.atan(dist_ver/dist_hor)).toString()
             if (y_start > y_end) angle = -angle
             if (x_start > x_end) angle = -angle
             const scale = Math.sqrt(Math.pow(dist_ver,2) + Math.pow(dist_hor,2))
-            // To add style attributes
-            var style = document.createElement('style');
-            style.type = 'text/css'
-            style.innerHTML = '.cssClass { position: relative; background-color: rgb(0, 0, 55); transform: rotate('+angle+'rad) scale('+scale+', 0.3); left: '+translate_x+'px; top:'+translate_y+'px; }';
-            document.getElementsByTagName('head')[0].appendChild(style);
-            document.getElementById(lineName).className = 'cssClass';
+            // Try to create line element
+            let lineName = project1_id+'-'+draggable.id.split("-")[0]+"-line"
+            let lineElement = document.getElementById(lineName)
+            if (!lineElement) {
+                // Add html element to represent line
+                const newDiv = document.createElement("div");
+                newDiv.setAttribute("id", lineName)
+                newDiv.setAttribute("class", "line-connection")
+                newDiv.setAttribute("style", "position: relative; background-color: rgb(0, 0, 55); grid-row:"+currentRow+"; grid-column:"+currentCol+"; transform: rotate("+angle+"rad) scale("+scale+", 0.3); left:"+translate_x+"px; top:"+translate_y+"px;")
+                interface_grid.prepend(newDiv)
+                // Get line and add event listener
+                lineElement = document.getElementById(lineName)
+                lineElement.addEventListener('click', () => {
+                    // Open line baloon
+                    if (!baloonIsOpen && !selectingConnection) {
+                     // Get clicked line projects
+                     let p1 = lineElement.id.split("-")[0]
+                     let p2 = lineElement.id.split("-")[1]
+             
+                     // Get baloon of clicked line
+                     let baloonActive = document.getElementById(p1+'-'+p2+'-baloon')
+             
+                     // Animate baloon pop-up
+                     const state = Flip.getState(baloonActive, {props: "opacity,transform"});
+                     baloonActive.classList.add("active");
+                     Flip.from(state, {
+                         duration: .55,
+                         absolute: baloonActive.children,
+                         ease: "elastic.out(0.6, 0.9)",
+                         scale: true,
+                         onStart: () => { baloonIsOpen = true }
+                     })
+                 } 
+                })
+            }
+            else {
+                lineElement.setAttribute("style", "position: relative; background-color: rgb(0, 0, 55); grid-row:"+currentRow+"; grid-column:"+currentCol+"; transform: rotate("+angle+"rad) scale("+scale+", 0.3); left:"+translate_x+"px; top:"+translate_y+"px;")
+            }
 
             // --------------- Add connection to data base ---------------
             project2_name = draggable.innerHTML.trim()
@@ -189,7 +213,101 @@ draggables.forEach(draggable => {
                          "end_type":"`+project2_model+`",
                          "end_obj_id":"`+project2_pk+`"}`;
             xhr.send(data);
+
+            // --------------- Add line balloon ---------------
+            let balloonLineName = project1_id+'-'+draggable.id.split("-")[0]+"-baloon"
+            let balloonLineElement = document.getElementById(balloonLineName)
+            if (!balloonLineElement) {
+                // Add html element to represent line
+                const newDiv = document.createElement("div");
+                newDiv.setAttribute("id", balloonLineName)
+                newDiv.setAttribute("class", "line-menu-baloon")
+                newDiv.setAttribute("style", "grid-row:"+Math.floor((currentRow+newRow)/2)+"; grid-column:"+Math.floor((currentCol+newCol)/2)+";")
+                const newDiv1 = document.createElement("div")
+                newDiv1.setAttribute("class", "triangle-left-border")
+                newDiv.appendChild(newDiv1)
+                const newDiv2 = document.createElement("div")
+                newDiv2.setAttribute("class", "triangle-left-white")
+                newDiv.appendChild(newDiv2)
+                const newUl = document.createElement("ul")
+                newUl.setAttribute("id", project1_id+'-'+draggable.id.split("-")[0])
+                newUl.setAttribute("class", "line-menu")
+                //
+                const newLi1 = document.createElement("li")
+                const newA1 = document.createElement("a")
+                newA1.setAttribute("class", "btn-menu page")
+                newA1.setAttribute("role", "button")
+                newA1.innerHTML = "Configure connection"
+                newLi1.appendChild(newA1)
+                newUl.appendChild(newLi1)
+                //
+                const newLi2 = document.createElement("li")
+                const newA2 = document.createElement("a")
+                newA2.setAttribute("class", "btn-menu line del")
+                newA2.setAttribute("role", "button")
+                newA2.setAttribute("id", project1_id+'-'+draggable.id.split("-")[0])
+                newA2.setAttribute("data-start_name", project1_name)
+                newA2.setAttribute("data-end_name", project2_name)
+                newA2.innerHTML = "Delete"
+                newLi2.appendChild(newA2)
+                newUl.appendChild(newLi2)
+                //
+                newDiv.appendChild(newUl)
+                interface_grid.append(newDiv)
+            }
+            else {
+                //lineElement.setAttribute("style", "position: relative; background-color: rgb(0, 0, 55); grid-row:"+currentRow+"; grid-column:"+currentCol+"; transform: rotate("+angle+"rad) scale("+scale+", 0.3); left:"+translate_x+"px; top:"+translate_y+"px;")
+            }
+
+            btns_line_del = document.querySelectorAll('.btn-menu.line.del')
+            btns_line_del.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    baloonIsOpen = false
+                    let start_name = btn.dataset.start_name
+                    let end_name = btn.dataset.end_name
+                    // Make post request to create
+                    let xhr = new XMLHttpRequest();
+                    xhr.open("POST", "http://192.168.56.1:8080/");
+                    xhr.setRequestHeader("Accept", "application/json");
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    let data = `{"type": "delete connection",
+                                 "start_name": "`+start_name+`",
+                                 "end_name":"`+end_name+`"}`;
+                    xhr.send(data);
+
+                    const lineToDel = document.getElementById(project1_id+"-"+draggable.id.split("-")[0]+"-line");
+                    lineToDel.remove();
+                    const baloonToDel = document.getElementById(project1_id+"-"+draggable.id.split("-")[0]+"-baloon");
+                    baloonToDel.remove();
+                })
+            })
         }
+    })
+})
+
+// Open line baloon
+connections.forEach(connection => {
+    connection.addEventListener('click', () => {
+       // Open line baloon
+       if (!baloonIsOpen && !selectingConnection) {
+        // Get clicked line projects
+        let p1 = connection.id.split("-")[0]
+        let p2 = connection.id.split("-")[1]
+
+        // Get baloon of clicked line
+        let baloonActive = document.getElementById(p1+'-'+p2+'-baloon')
+
+        // Animate baloon pop-up
+        const state = Flip.getState(baloonActive, {props: "opacity,transform"});
+        baloonActive.classList.add("active");
+        Flip.from(state, {
+            duration: .55,
+            absolute: baloonActive.children,
+            ease: "elastic.out(0.6, 0.9)",
+            scale: true,
+            onStart: () => { baloonIsOpen = true }
+        })
+    } 
     })
 })
 
@@ -198,7 +316,13 @@ if(interface_container) {
     // Close baloon
     interface_container.addEventListener('click', () => {
         if (baloonIsOpen) {
-            let baloonToClose = document.getElementsByClassName('item-menu-baloon active')[0];
+            let baloonToClose = -1
+            if (document.getElementsByClassName('item-menu-baloon active')[0]) {
+                baloonToClose = document.getElementsByClassName('item-menu-baloon active')[0];
+            }
+            else {
+                baloonToClose = document.getElementsByClassName('line-menu-baloon active')[0];
+            }
 
             const state = Flip.getState(baloonToClose, {props: "opacity,transform"});
             baloonToClose.classList.remove("active");
@@ -233,38 +357,90 @@ if (interface_grid) {
     interface_grid.addEventListener('dragend', e => {
         e.preventDefault()
         const draggable = document.querySelector('.dragging');
-        let projectClicked = draggable.id
+        let projectClicked = draggable.id.split("-")[0]
 
-        // Find baloon to update row and col
-        let baloonToUpdate = 0
-        let baloonList = document.getElementsByClassName("item-menu-baloon")
-        for (let drag of baloonList) {
-            if (drag.id === projectClicked) { baloonToUpdate = drag }
-        }
+        // Find item baloon to update
+        let itemBaloonToUpdate = document.getElementById(projectClicked+'-baloon')
 
         let offset = e.target.getBoundingClientRect();
         let X = e.clientX - offset.left;
         let Y = e.clientY - offset.top;
-
+        // Get new row and column
         let newRow = currentRow + Math.ceil(Y / 50) - 1
         let newCol = currentCol + Math.ceil(X / 50) - 1
         if (newRow < 1) newRow = 1
         if (newRow > 10) newRow = 10
         if (newCol < 1) newCol = 1
         if (newCol > 22) newCol = 22
-        
+        // Update row and column values of item and baloon
         draggable.classList.remove('dragging')
         draggable.style.gridRow = newRow
         draggable.style.gridColumn = newCol
-        baloonToUpdate.style.gridRow = newRow
-        baloonToUpdate.style.gridColumn = newCol
+        itemBaloonToUpdate.style.gridRow = newRow
+        itemBaloonToUpdate.style.gridColumn = newCol
         
+        // Update row and column in db
         let xhr = new XMLHttpRequest();
         xhr.open("POST", "http://192.168.56.1:8080/");
         xhr.setRequestHeader("Accept", "application/json");
         xhr.setRequestHeader("Content-Type", "application/json");
         let data = `{"type": "position", "model":"`+draggable.dataset.model+`", "name": "`+draggable.innerHTML.trim()+`", "grid_row": `+newRow+`, "grid_col": `+newCol+`}`;
         xhr.send(data);
+
+        // Update connection line when moving item
+        // Get all lines and iterate
+        let line_connections = document.getElementsByClassName('line-connection')
+        for (let line of line_connections) {
+            if(line.id.includes(projectClicked)){
+                // Get ids of both items
+                let lineBaloon = -1
+                if(line.id.split("-")[1] === projectClicked) {
+                    p1_id = line.id.split("-")[0]
+                    p2_id = line.id.split("-")[1]
+                    console.log(p1_id+"-"+p2_id)
+                    lineBaloon = document.getElementById(p1_id+'-'+p2_id+"-baloon")
+                }
+                else {
+                    p2_id = line.id.split("-")[0]
+                    p1_id = line.id.split("-")[1]
+                    console.log(p2_id+"-"+p1_id)
+                    lineBaloon = document.getElementById(p2_id+'-'+p1_id+"-baloon")
+                }
+
+                // Redefine currentRow and currentCol to first item
+                p1 = document.getElementById(p1_id+"-item")
+                let fullStyle = getComputedStyle(p1)
+                currentRow = parseInt(fullStyle["gridRowStart"])
+                currentCol = parseInt(fullStyle["gridColumnStart"])
+
+                // Recalculate values
+                const x_start = (currentCol*50)-25
+                const y_start = (currentRow*50)-25
+                const x_end = (newCol*50)-25
+                const y_end = (newRow*50)-25
+                // Calculate middle point between newRow, newCol and currentRow, currentCol
+                // Calculate angle between newRow, newCol and currentRow, currentCol
+                // Calculate scale between newRow, newCol and currentRow, currentCol
+                const dist_ver = Math.abs(newRow-currentRow)
+                const dist_hor = Math.abs(newCol-currentCol)
+                let position_y = Math.min(y_start,y_end) + 25*dist_ver
+                let position_x = Math.min(x_start,x_end) + 25*dist_hor
+                let translate_y = (position_y-25).toString()
+                let translate_x = (position_x-25).toString()
+                translate_y = 25*(newRow-currentRow)
+                translate_x = 25*(newCol-currentCol)
+                let angle = (Math.atan(dist_ver/dist_hor)).toString()
+                if (y_start > y_end) angle = -angle
+                if (x_start > x_end) angle = -angle
+                const scale = Math.sqrt(Math.pow(dist_ver,2) + Math.pow(dist_hor,2))
+
+                // Update line style
+                line.setAttribute("style", "position: relative; background-color: rgb(0, 0, 55); grid-row:"+currentRow+"; grid-column:"+currentCol+"; transform: rotate("+angle+"rad) scale("+scale+", 0.3); left:"+translate_x+"px; top:"+translate_y+"px;")
+                // Update line balloon style
+                lineBaloon.style.gridRow = Math.floor((currentRow+newRow)/2)
+                lineBaloon.style.gridColumn = Math.floor((currentCol+newCol)/2)
+            }
+        }
     })
 }
 
@@ -278,7 +454,32 @@ btns_connection.forEach(btn => {
         project1_model = btn.dataset.model
     })
 })
+// Delete line from db and html
+btns_line_del.forEach(btn => {
+    btn.addEventListener("click", () => {
+        baloonIsOpen = false
+        let start_name = btn.dataset.start_name
+        let end_name = btn.dataset.end_name
+        let start_id = btn.id.split("-")[0]
+        let end_id = btn.id.split("-")[1]
+        // Make post request to create
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://192.168.56.1:8080/");
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", "application/json");
+        let data = `{"type": "delete connection",
+                     "start_name": "`+start_name+`",
+                     "end_name":"`+end_name+`"}`;
+        xhr.send(data);
 
+        const lineToDel = document.getElementById(start_id+"-"+end_id+"-line");
+        lineToDel.remove();
+        const baloonToDel = document.getElementById(start_id+"-"+end_id+"-baloon");
+        baloonToDel.remove();
+    })
+})
+
+// Canvas functions
 function clearAndLoadCanvas() {
     // Start canvas
     const canvas = document.getElementById('connectionCanvas')
@@ -293,7 +494,6 @@ function clearAndLoadCanvas() {
 
     return [canvas,ctx]
 }
-
 function drawConnection(canvas,ctx,x_end,y_end) {
     ctx.beginPath();
     ctx.moveTo((currentCol*50)-25, (currentRow*50)-25);

@@ -14,25 +14,13 @@ from .forms import *
 
 import json, time, math
 
-# When creating a connection between two projects
-#model1 = ModularStoragePanelBase.objects.first()
-#Connection.objects.create(target=model1)
-#model2 = ModularStoragePanel.objects.first()
-#Connection.objects.create(target=model2)
-
-# When getting the connected elements
-
-#Connection.
-
-esp8266_ip = "192.168.43.21"
+esp8266_ip = "192.168.15.17"
 delayForSliderAnimation = 0.7
 
 def visitor_ip_address(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
+    if x_forwarded_for: ip = x_forwarded_for.split(',')[0]
+    else: ip = request.META.get('REMOTE_ADDR')
     return ip 
 
 def conta_componentes():
@@ -58,72 +46,7 @@ def conta_componentes():
         categoria.save()
         count_total = 0
 
-def update_config():
-    jsonFile = open(PAINEL_CONFIG_JSON)
-    dictEspConfig = json.load(jsonFile)
-
-    for categoria in dictEspConfig:
-        if categoria != "Funcionalidades":
-            for componente in dictEspConfig[categoria]:
-                try:
-                    componente_id = dictEspConfig[categoria][componente]["ID"].split("/")[2]
-                    componente_obj = Component.objects.get(id=int(componente_id))
-                    dictEspConfig[categoria][componente]["Quantidade"] = componente_obj.quantidade
-                except:
-                    continue
-
-    jsonEspConfig = json.dumps(dictEspConfig, indent=4, sort_keys=True)
-    with open(PAINEL_CONFIG_JSON, "w") as jsonFile:
-        jsonFile.write(jsonEspConfig)
                 
-
-def painelDeArmazenamentoModular_json():
-    dictJson = {}
-
-    # Get pannels names
-    for painel in ModularStoragePanel.objects.all():
-        dictJsonPainel = {}
-        # Get components in pannels
-        for i in range(1,10):
-            if i==1: 
-                keyName = painel.slot_1
-                idx = painel.slot_1.id
-            if i==2: 
-                keyName = painel.slot_2
-                idx = painel.slot_2.id
-            if i==3: 
-                keyName = painel.slot_3
-                idx = painel.slot_3.id
-            if i==4: 
-                keyName = painel.slot_4
-                idx = painel.slot_4.id
-            if i==5: 
-                keyName = painel.slot_5
-                idx = painel.slot_5.id
-            if i==6: 
-                keyName = painel.slot_6
-                idx = painel.slot_6.id
-            if i==7: 
-                keyName = painel.slot_7
-                idx = painel.slot_7.id
-            if i==8: 
-                keyName = painel.slot_8
-                idx = painel.slot_8.id
-            if i==9: 
-                keyName = painel.slot_9
-                idx = painel.slot_9.id
-            lim = keyName.limite
-            qtd = keyName.quantidade
-            keyName = str(i) + ". " + keyName.name
-            # Get slots proprieties
-            dictJsonPainel.update({keyName:{"ID":idx,"Lim":lim,"Qtd":qtd}})
-        dictJson.update(dictJsonPainel)
-        
-    # Define 'Funcionalidade' values
-    dictJson["Funcionalidade"] = {}
-
-    return(dictJson)
-    
 def painelDeArmazenamentoModular_splitIds(request, cookie_name):
     criar_painel_ids = request.COOKIES.get(cookie_name)
     if (criar_painel_ids != None): criar_painel_num_ids = len(criar_painel_ids.split(","))
@@ -153,9 +76,11 @@ class InterfaceProject( object ):
        self.grid_col = grid_col
     
 class InterfaceConnection( object ):
-    def __init__( self, id1, id2, start_grid_row, start_grid_col, end_grid_row, end_grid_col ):
+    def __init__( self, id1, id2, start_name, end_name, start_grid_row, start_grid_col, end_grid_row, end_grid_col ):
         self.id1 = id1
         self.id2 = id2
+        self.start_name = start_name
+        self.end_name = end_name
         # Calculate angle, scale and translation of line
         x_start = (start_grid_col*50)-25
         y_start = (start_grid_row*50)-25
@@ -165,66 +90,43 @@ class InterfaceConnection( object ):
         dist_hor = abs(end_grid_col-start_grid_col)
         position_y = min(y_start,y_end) + 25*dist_ver
         position_x = min(x_start,x_end) + 25*dist_hor
-        translate_y = str(position_y-25)
-        translate_x = str(position_x-25)
-        angle = math.atan(dist_ver/dist_hor)
-        if (y_start > y_end or x_start > x_end): angle = str(-angle)
+        #translate_y = str(position_y-25)
+        #translate_x = str(position_x-25)
+        if(dist_hor == 0): angle = math.radians(90)
+        else: angle = math.atan(dist_ver/dist_hor)
+        if (y_start > y_end): angle = -angle
+        if (x_start > x_end): angle = -angle
+        angle = str(angle)
         scale = math.sqrt(dist_ver**2 + dist_hor**2)
         # ----------------------------------------------
         self.angle = angle
         self.scale = scale
-        self.translate_x = translate_x
-        self.translate_y = translate_y
-
+        self.translate_x = 25*(end_grid_col-start_grid_col)
+        self.translate_y = 25*(end_grid_row-start_grid_row)
+        self.start_grid_row = start_grid_row
+        self.start_grid_col = start_grid_col
+        self.middle_grid_row = (start_grid_row+end_grid_row)//2
+        self.middle_grid_col = (start_grid_col+end_grid_col)//2
 
 @csrf_exempt
 def home(request):
     ip = visitor_ip_address(request)
     print(ip)
-    #update_config()
 
-    jsonDict = painelDeArmazenamentoModular_json()
-    #print(jsonDict)
-
+    # === ESP8266 Stuff ===============================
     if request.method == "POST" and ip == esp8266_ip:
-        # Read json request data
-        s = request.body.decode('utf8')
-        print(s)
-        '''
-        in_data = json.loads(s)
-        jsonEspConfig = json.dumps(in_data, indent=4, sort_keys=True)
-        with open(PAINEL_CONFIG_JSON, "w") as jsonFile:
-            jsonFile.write(jsonEspConfig)
-
-        print("In ESP Configuration Data:")
-        print(jsonEspConfig)
-        '''
-
         # Returns empty json dictionary
         return JsonResponse({})
 
     if request.method == "GET" and ip == esp8266_ip:
-        # MANDAR PARA O ESP O MODULO ATUAL DO DB, O PEDAÇO DO JSON CORRESPONDENTE, E O RESTANTE DAS INFOS
-
-        # Read .json file as dictionary
-        jsonFile = open(PAINEL_CONFIG_JSON)
-        dictEspConfig = json.load(jsonFile)
-
         # Get current time and update .json file
         horaAtual = datetime.now().strftime("%H%M") 
-        dictEspConfig["Funcionalidades"]["Horario"]["Atual"] = horaAtual
-        jsonEspConfig = json.dumps(dictEspConfig, indent=4, sort_keys=True)
-        with open(PAINEL_CONFIG_JSON, "w") as jsonFile:
-            jsonFile.write(jsonEspConfig)
-
-        #print("Out ESP Configuration Data:")
-        #print(jsonEspConfig)
-        #out_hora = {"hora":datetime.now().strftime("%H%M")}
 
         # Returns json dictionary
-        print(dictEspConfig["Capacitor eletrolitico 1"])
-        return JsonResponse(dictEspConfig["Capacitor eletrolitico 1"])
+        return JsonResponse({})
+    # =================================================
 
+    # === Interface Panel Stuff ===============================
     # Update and create interface project positions/connections in db (received as POST from js)
     if request.method == "POST":
         # Request body is of type json -> Decode it and serialize
@@ -251,6 +153,10 @@ def home(request):
                                       start_object_id=jsonLoad['start_obj_id'],
                                       end_type=end_type,
                                       end_object_id=jsonLoad['end_obj_id'])
+        if (jsonLoad['type'] == "delete connection"):
+            name = jsonLoad['start_name'] + '-' + jsonLoad['end_name']
+            Connection.objects.get(name=name).delete()
+
     # Send interface projects position from db to html
     interface_projects_position = []
     projects_id_in_interface = {}
@@ -274,7 +180,8 @@ def home(request):
         # Get angle, scale and translation of line from class
         id1 = projects_id_in_interface[startObj.name]
         id2 = projects_id_in_interface[endObj.name]
-        interface_connections.append(InterfaceConnection(id1, id2, startObj.grid_row, startObj.grid_col, endObj.grid_row, endObj.grid_col))
+        interface_connections.append(InterfaceConnection(id1, id2, startObj.name, endObj.name, startObj.grid_row, startObj.grid_col, endObj.grid_row, endObj.grid_col))
+    # =================================================
 
     context = {'interface_projects_position': interface_projects_position,
                'interface_connections': interface_connections}

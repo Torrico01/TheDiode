@@ -10,8 +10,8 @@ import django, random, json
 sys.path.append(PROJECT_PATH)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TheDiode.settings')
 django.setup()
-from projects.models import ModularStoragePannel
-
+from projects.models import *
+from components.models import *
 
 def get_processes_running():
     tasks = subprocess.check_output(['tasklist'])
@@ -35,30 +35,68 @@ def on_connect(client, userdata, flags, rc):
         print("Connection failed")
 
 
-def save_mqtt_in_db(message, db_class, db_propriety, operator):
+def save_mqtt_in_db(message, db_class, db_name, db_propriety, operator):
     value = operator(message.payload.decode())
-    db_query = db_class.objects.first()
+    db_query = db_class.objects.get(name=db_name)
     db_query.__dict__[db_propriety] = value
     db_query.save()
 
-def json_publish_formatter(jsonFilePath):
-    jsonFile = open(jsonFilePath)
-    jsonObj = json.load(jsonFile)
-    jsonList = []
-    for jsonHeader in jsonObj:
-        jsonValue = jsonObj[jsonHeader]
-        jsonValueString = json.dumps(jsonValue)
-        jsonList.append(jsonValueString)
-    return jsonList
+def json_publish_formatter(base_name):
+    jsonDictAll = {}
+    for storagePanel in ModularStoragePanel.objects.all():
+        if (storagePanel.base.name == base_name):
+            jsonDict = {}
+            for count in range(1,10):
+                slot = getattr(storagePanel,'slot_'+str(count))
+                jsonDict[str(count) + '. ' + slot.name] = {
+                    "ID": str(Category.objects.get(id=slot.tipo.id).id) + "/" + str(slot.tipo.id) + "/" + str(slot.id),
+                    "Lim": str(slot.limite),
+                    "Qtd": str(slot.quantidade)
+                }
+            jsonDictAll[storagePanel.name] = jsonDict 
+    return(jsonDictAll)
 
 def on_message(client, userdata, message):
     print("Mensagem em " + message.topic + ": " + message.payload.decode("utf-8"))
-    if PAINEL_TOPIC.modulo == message.topic: 
-        save_mqtt_in_db(message, ModularStoragePannel, 'modulo', int)
-        jsonMsgList = json_publish_formatter(PAINEL_CONFIG_JSON)
-        client.publish(PAINEL_TOPIC.modulo + "/BancoDeDados/1", jsonMsgList[0])
-    if PAINEL_TOPIC.outDisp == message.topic: 
-        save_mqtt_in_db(message, ModularStoragePannel, 'display', float)
+
+    if (COMMUNICATION_TOPIC.communication in message.topic):
+        if (COMMUNICATION_TOPIC.connection in message.topic):
+            split_message = message.topic.split('/')
+            requester_project_number = split_message[2]
+            try: requester_project_name = project_dict[requester_project_number]
+            except: requester_project_name = ""
+
+    if (PANEL_BASE_TOPIC.project in message.topic):
+        if (PANEL_BASE_TOPIC.module in message.topic):
+            split_message = message.topic.split('/')
+            requested_project_name = split_message[1]
+            requester_project_number = split_message[3]
+            try: requester_project_name = project_dict[requester_project_number]
+            except: requester_project_name = ""
+            if requester_project_name: save_mqtt_in_db(message, ModularStoragePanelBase, requested_project_name, 'module', int) 
+    
+    if (PANEL_TOPIC.project in message.topic):
+        if (PANEL_TOPIC.configuration in message.topic):
+            split_message = message.topic.split('/')
+            requested_project_name = split_message[1]
+            requester_project_number = split_message[3]
+            try: requester_project_name = project_dict[requester_project_number]
+            except: requester_project_name = ""
+            if (message.payload.decode("utf-8") == "Request"):
+                jsonDictAll = json_publish_formatter(requester_project_name)
+                for key in jsonDictAll:
+                    if key == requested_project_name:
+                        jsonToSend = json.dumps(jsonDictAll[key])
+                        client.publish(PANEL_TOPIC.project + "/" + key + "/" + PANEL_TOPIC.configuration + "/1", jsonToSend)
+
+        if (PANEL_TOPIC.outDisplay in message.topic):
+            split_message = message.topic.split('/')
+            requested_project_name = split_message[1]
+            requester_project_number = split_message[4]
+            try: requester_project_name = project_dict[requester_project_number]
+            except: requester_project_name = ""
+            if requester_project_name: save_mqtt_in_db(message, ModularStoragePanel, requested_project_name, 'display_7_segment', int)
+
         
 def on_publish(client, userdata, mid):
     print("Published py1!")
@@ -98,7 +136,7 @@ def main():
     for p in processes:
         if "python" in p["image"]:
             python_process+=1
-    if python_process <= 3:
+    if python_process <= 4:
         # Start MQTT Broker (Mosquitto) and server subscription
         print("Calling server subscriber main loop")
         time.sleep(3)
