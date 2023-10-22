@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import *
 
 admin.site.register(ModularStoragePanelBase)
-admin.site.register(ModularStoragePanel)
+admin.site.register(ModularStoragePanel3x3)
 admin.site.register(Connection)
 
 

@@ -68,8 +68,8 @@ def painelDeArmazenamentoModular_contextMsg(request):
 # Defining classes to be used in html by accessing its values
 class InterfaceProject( object ):
    def __init__( self, pk, id, name, model, grid_row, grid_col ):
-       self.pk = pk
-       self.id = id
+       self.pk = pk # To identify the project in the model
+       self.id = id # To identify the project in the interface panel
        self.name = name
        self.model = model
        self.grid_row = grid_row
@@ -129,7 +129,8 @@ def home(request):
     # === Interface Panel Stuff ===============================
     # Update and create interface project positions/connections in db (received as POST from js)
     if request.method == "POST":
-        # Request body is of type json -> Decode it and serialize
+        # Sent by javascript in json format
+        # Decode json request body and and serialize
         jsonLoad = json.loads(request.body.decode('utf8'))
 
         if (jsonLoad['type'] == "position"):
@@ -156,6 +157,19 @@ def home(request):
         if (jsonLoad['type'] == "delete connection"):
             name = jsonLoad['start_name'] + '-' + jsonLoad['end_name']
             Connection.objects.get(name=name).delete()
+        if (jsonLoad['type'] == "delete project"):
+            # Get model class of the draggable object
+            for name, app in apps.app_configs.items():
+                if name in ['projects']:
+                    for model in app.get_models():
+                        if model.__name__ in [jsonLoad['model']]:
+                            db_class = model
+            # Update grid row and column of draggable in db
+            db_query = db_class.objects.get(name=jsonLoad['name'])
+            db_query.grid_row = 0
+            db_query.grid_col = 0
+            db_query.save()
+
 
     # Send interface projects position from db to html
     interface_projects_position = []
@@ -170,7 +184,12 @@ def home(request):
                         pk = object.id
                         id = "p" + str(count)
                         projects_id_in_interface[object.name] = id
-                        interface_projects_position.append(InterfaceProject(pk, id, object.name, model.__name__, object.grid_row, object.grid_col))
+                        interface_projects_position.append(InterfaceProject(pk,
+                                                                            id,
+                                                                            object.name,
+                                                                            model.__name__,
+                                                                            object.grid_row,
+                                                                            object.grid_col))
     # Send interface connections from db to html
     allConnections = Connection.objects.all()
     interface_connections = []
@@ -254,7 +273,6 @@ def modificar(request, id_categoria, id_tipo, id):
             time.sleep(delayForSliderAnimation) # Wait for animation to finish
             form.save()
             conta_componentes()
-            update_config()
             return redirect("./")
     context = {'form': form,
                'componente_especifico': componente_especifico,

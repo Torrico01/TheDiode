@@ -16,9 +16,45 @@ body {
   opacity: 0%;
 }
 
+/***************** Modular Storage Panel *****************/
+.categorias {
+  display: inline-block;
+  padding: 15px 25px;
+  font-size: 24px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 3px #999;
+}
+
+.categorias:hover {background-color: #3e8e41}
+
+.categorias:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+
 /***************** Project card window *****************/
+.card-container {
+  display: flex;
+  width: 100%;
+  height: auto;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 15px;
+}
+
 .card-class {
   display: grid;
+  height: auto;
+  width: 1102px;
   grid-template-columns: repeat(9, 1fr);
   grid-gap: 3rem;
   margin: 1rem 5rem 4rem 5rem;
@@ -26,21 +62,25 @@ body {
 
 .card {
   height: 12rem;
-  border-radius: 1rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #93a9ff;
   grid-column: span 3;
   font-size: 1.4rem;
   padding: 2rem;
-  box-shadow: 0.7rem 0.7rem 0rem rgb(39,39,39);
-  border: 4px solid rgb(39,39,39);
   gap: 2rem;
   position: relative;
   /*transform:  translateY(0%);*/
+
+  /* Middle border */
+  border: 0.4rem outset rgb(214, 214, 214);
+  border-radius: 1.5rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
+  /* Bg color */
+  background-color: rgb(150, 165, 247);
 }
 
 .card.expanded {
@@ -92,20 +132,78 @@ body {
   font-size: 4rem;
 }
 
-/***************** Interface pannel for connecting projects *****************/
+/***************** Interface panel for connecting projects *****************/
 .interface-container {
   display: flex;
   width: 100%;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding-bottom: 40px;
+  padding-bottom: 20px;
+}
+
+.interface-projects-container {
+  height: auto;
+  width: 1102px;
+  padding: 10px;
+  margin-top: 15px;
+
+  /* Inner border */
+  background: linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
+  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
+  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
+  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
+  /* Middle border */
+  border: 0.7rem outset rgb(214, 214, 214);
+  border-radius: 1.5rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
+  /* Bg color */
+  background-color: rgb(247, 150, 150);
+}
+
+.interface-projects {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: 60px;
+  grid-gap: 1rem;
+}
+
+.interface-item.list {
+  padding: 5px;
+  font-size: 0.8em;
+  text-align: center;
+  transform: scale(1);
+
+  /* Middle border */
+  border: 0.2rem outset rgb(255, 255, 255);
+  border-radius: 0.25rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
+  /* Bg color */
+  background-color: rgb(214, 214, 214);
+}
+
+.interface-item.list.dragging {
+  opacity: 0.4;
+  transform: scale(1);
 }
 
 .interface-grid-container {
   height: 502px;
   width: 1102px;
   padding: 1px;
+
+  /* Inner border */
+  background: linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
+  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
+  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
+  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
+  /* Middle border */
+  border: 0.7rem outset rgb(214, 214, 214);
+  border-radius: 1.5rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
 
   background:
   linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 0px / 2px 100%,
@@ -142,47 +240,61 @@ body {
   linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 350px / 100% 2px,
   linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 400px / 100% 2px,
   linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 450px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 500px / 100% 2px;
+  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 500px / 100% 2px,
+
+  linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
+  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
+  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
+  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
+
+  background-color: rgb(221, 230, 195);
   background-repeat:no-repeat;
 }
 
 .interface-grid-container.active {
   background:
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 50px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 100px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 150px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 200px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 250px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 300px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 350px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 400px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 450px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 500px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 550px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 600px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 650px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 700px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 750px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 800px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 850px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 900px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 950px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 1000px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 1050px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 1100px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 50px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 100px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 150px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 200px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 250px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 300px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 350px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 400px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 450px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 500px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 550px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 600px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 650px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 700px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 750px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 800px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 850px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 900px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 950px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 1000px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 1050px 0px / 2px 100%,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 1100px 0px / 2px 100%,
 
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 0px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 50px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 100px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 150px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 200px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 250px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 300px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 350px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 400px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 450px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0.8),rgba(204, 204, 204, 0.8)) 0px 500px / 100% 2px;
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 0px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 50px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 100px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 150px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 200px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 250px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 300px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 350px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 400px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 450px / 100% 2px,
+  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 500px / 100% 2px,
+
+  linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
+  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
+  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
+  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
+
+  background-color: rgb(221, 230, 195);
   background-repeat:no-repeat;
 }
 
@@ -194,16 +306,28 @@ body {
 }
 
 .interface-item {
-  background-color: rgb(235, 55, 55);
-  border: 1px solid rgba(0, 0, 0);
   padding: 5px;
-  font-size: 11px;
+  font-size: 10px;
+  word-wrap: break-word;
+  word-break: break-word;
   text-align: center;
-  transform: scale(1.25);
+  transform: scale(1);
+
+  /* Middle border */
+  border: 0.2rem outset rgb(255, 255, 255);
+  border-radius: 0.25rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
+  /* Bg color */
+  background-color: rgb(214, 214, 214);
 }
 
 .interface-item.dragging {
   opacity: 0.4;
+  transform: scale(1);
+}
+
+.interface-item.mouseover {
   transform: scale(1.25);
 }
 
@@ -310,4 +434,5 @@ body {
 
 #connectionCanvas {
   position: absolute;
+  padding-bottom: 163px;
 }

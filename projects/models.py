@@ -16,7 +16,7 @@ class ModularStoragePanelBase(models.Model):
     def __str__(self):
         return str(self.name)
 
-class ModularStoragePanel(models.Model):
+class ModularStoragePanel3x3(models.Model):
     name = models.CharField(max_length=200, null=True, unique=True)
     base = models.ForeignKey('ModularStoragePanelBase', on_delete=models.CASCADE, default="1")
     # Painel - Outputs
@@ -38,6 +38,9 @@ class ModularStoragePanel(models.Model):
 
     def __str__(self):
         return str(self.name)
+    
+    class Meta:
+        verbose_name_plural = "Modular storage panels 3x3"
     
 class Connection(models.Model):
     name = models.CharField(max_length=200, null=True, unique=True)

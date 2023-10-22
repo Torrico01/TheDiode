@@ -53,7 +53,7 @@ class CriarPainelForm(ModelForm):
         self.fields['name'].widget.attrs.update({'class': 'criacao'})
         self.fields['base'].widget.attrs.update({'class': 'criacao'})
     class Meta:
-        model = ModularStoragePanel
+        model = ModularStoragePanel3x3
         fields = ['name',
                   'base',
                   'slot_1',

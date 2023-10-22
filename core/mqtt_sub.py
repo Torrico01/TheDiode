@@ -43,7 +43,7 @@ def save_mqtt_in_db(message, db_class, db_name, db_propriety, operator):
 
 def json_publish_formatter(base_name):
     jsonDictAll = {}
-    for storagePanel in ModularStoragePanel.objects.all():
+    for storagePanel in ModularStoragePanel3x3.objects.all():
         if (storagePanel.base.name == base_name):
             jsonDict = {}
             for count in range(1,10):
@@ -95,7 +95,7 @@ def on_message(client, userdata, message):
             requester_project_number = split_message[4]
             try: requester_project_name = project_dict[requester_project_number]
             except: requester_project_name = ""
-            if requester_project_name: save_mqtt_in_db(message, ModularStoragePanel, requested_project_name, 'display_7_segment', int)
+            if requester_project_name: save_mqtt_in_db(message, ModularStoragePanel3x3, requested_project_name, 'display_7_segment', int)
 
         
 def on_publish(client, userdata, mid):
