@@ -3,6 +3,7 @@ from .models import *
 
 admin.site.register(ModularStoragePanelBase)
 admin.site.register(ModularStoragePanel3x3)
+admin.site.register(RGBFrame)
 admin.site.register(Connection)
 
 

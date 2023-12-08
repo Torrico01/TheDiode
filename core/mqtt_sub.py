@@ -73,7 +73,7 @@ def on_message(client, userdata, message):
             requester_project_number = split_message[3]
             try: requester_project_name = project_dict[requester_project_number]
             except: requester_project_name = ""
-            if requester_project_name: save_mqtt_in_db(message, ModularStoragePanelBase, requested_project_name, 'module', int) 
+            if requester_project_name: save_mqtt_in_db(message, ModularStoragePanelBase, requested_project_name, 'module', int)
     
     if (PANEL_TOPIC.project in message.topic):
         if (PANEL_TOPIC.configuration in message.topic):
@@ -97,7 +97,31 @@ def on_message(client, userdata, message):
             except: requester_project_name = ""
             if requester_project_name: save_mqtt_in_db(message, ModularStoragePanel3x3, requested_project_name, 'display_7_segment', int)
 
-        
+    if (RGB_FRAME_TOPIC.project in message.topic):
+        if (RGB_FRAME_TOPIC.outRGBStrip in message.topic):
+            split_message = message.topic.split('/')
+            requested_project_name = split_message[1]
+            requester_project_number = split_message[4]
+            try: requester_project_name = project_dict[requester_project_number]
+            except: requester_project_name = ''
+            if (requester_project_name and message.payload.decode("utf-8") == "Request"):
+                # Get RGB frame json configuration
+                rgbFrameObject = RGBFrame.objects.get(name=requester_project_name)
+                jsonDictAll = rgbFrameObject.rgb_strip
+                sequence = rgbFrameObject.current_sequence
+                jsonDict = jsonDictAll[str(sequence)]
+                # Update sequence value and save it
+                sequence += 1
+                if (sequence >= len(jsonDictAll)): sequence = 0
+                db_query = RGBFrame.objects.get(name=requester_project_name)
+                db_query.current_sequence = sequence
+                db_query.save()
+                # Send to project
+                jsonToSend = json.dumps(jsonDict)
+                client.publish(RGB_FRAME_TOPIC.project + "/" + requested_project_name + "/" + RGB_FRAME_TOPIC.outRGBStrip + "/1", jsonToSend)
+
+
+
 def on_publish(client, userdata, mid):
     print("Published py1!")
   

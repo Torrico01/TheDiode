@@ -170,7 +170,6 @@ def home(request):
             db_query.grid_col = 0
             db_query.save()
 
-
     # Send interface projects position from db to html
     interface_projects_position = []
     projects_id_in_interface = {}

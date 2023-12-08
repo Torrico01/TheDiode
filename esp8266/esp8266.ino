@@ -34,7 +34,7 @@
 #define MODULO_2 "Capacitor Eletrolitico 2"
 #define MODULO_2_ID "4"
 #define MODULO_2_ADDR "59" // 0xB2 (Pic) >>> 0x59 (Esp) // Placa 2 (mais recente)
-// Identifica os projectos (base + todos os painéis conectados)
+// Identifica os projetos (base + todos os painéis conectados)
 Dictionary &projectIds = *(new Dictionary(3));
 
 // -------- Definições do I2C --------
@@ -199,6 +199,14 @@ unsigned long hexStrToInt(String str) {
    return ul;
 }
 
+unsigned long intStrToInt(String str) {
+   char buffer [256];
+   unsigned long ul;
+   str.toCharArray(buffer, str.length() + 1);
+   ul = strtoul(buffer, 0, 10);
+   return ul;
+}
+
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
   // Payload to String conversion
   int i = 0;
@@ -217,14 +225,12 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
   int StringCount = 0;
   while (topicStringToSplit.length() > 0) {
     int index = topicStringToSplit.indexOf("/");
-    if (index == -1) // No / found
-    {
+    if (index == -1) {// No / found
       topicSplitString[StringCount++] = topicStringToSplit;
       lastTopicSplitString = topicStringToSplit;
       break;
     }
-    else
-    {
+    else {
       topicSplitString[StringCount++] = topicStringToSplit.substring(0, index);
       topicStringToSplit = topicStringToSplit.substring(index+1);
     }
@@ -246,7 +252,7 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
         String requested_project_name = topicSplitString[1];
         String requester_project_number = topicSplitString[3];
         String requested_id_str = projectIds[requested_project_name];
-        int requested_id = hexStrToInt(requested_id_str);
+        int requested_id = intStrToInt(requested_id_str);
         
         deserializeJson(jsonConfig, payload, length); // Modifica a string original
         get_limit_array();

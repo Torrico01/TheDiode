@@ -13,25 +13,38 @@ BROKER_PORT = 1883
 # Communication
 class CommunicationTopic:
     communication = "Communication"
-    connection = "Connection"
+    connection = "Connection" # Specify the status of the sender device (ON or OFF)
 COMMUNICATION_TOPIC = CommunicationTopic()
+# Message structure: communication_topic/other_topic/id_of_sender message
+
 # Modular Storage Panel Base
 class ModularStoragePanelBaseTopic:
     project = "ModularStoragePanelBase" 
-    module = "Module" # Specify the module of the Modular Storage Panel Base selected
-    outScreen = "Outputs/Screen" # Specify the value of the Modular Storage Panel Base screen
+    module = "Module" # Specify the module of the Modular Storage Panel Base selected (int)
+    outScreen = "Outputs/Screen" # Specify the value of the Modular Storage Panel Base screen (?)
 PANEL_BASE_TOPIC = ModularStoragePanelBaseTopic()
+# Message structure: project_topic/name_of_project/other_topic/id_of_sender message
+
 # Modular Storage Panel
 class ModularStoragePanelTopic:
     project = "ModularStoragePanel"
     configuration = "Configuration" # Specify all the stored data in Json format
     outDisplay = "Outputs/Display" # Specify the value of the Modular Storage Panel display
 PANEL_TOPIC = ModularStoragePanelTopic()
+# Message structure: project_topic/name_of_project/other_topic/id_of_sender message
+
+# RGB Frame
+class RGBFrameTopic:
+    project = "RGBFrame"
+    outRGBStrip = "Outputs/RGBStrip" # Specify the value of the RGB Strip Json configuration
+RGB_FRAME_TOPIC = RGBFrameTopic()
+# Message structure: project_topic/name_of_project/other_topic/id_of_sender message
 
 # ---------- Dictionary => Project Number ID - Project Name ----------
 project_dict = {
     '1': 'The Diode',
-    '2': 'Painel Base 1',
-    '3': 'Capacitor Eletrolitico 1',
-    '4': 'Capacitor Eletrolitico 2'
+    '2': 'Painel Base 1', # Modular Storage Panel Base
+    '3': 'Capacitor Eletrolitico 1', # Modular Storage Panel
+    '4': 'Capacitor Eletrolitico 2', # Modular Storage Panel
+    '5': 'RGB Frame 1' # RGB Frame
 }

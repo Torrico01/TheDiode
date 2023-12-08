@@ -1,55 +1,212 @@
+#include <ESP8266HTTPClient.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <Dictionary.h>
 #include <FastLED.h>
+#define len(arr) sizeof (arr)/sizeof (arr[0])
+
+// ========================================================================
+// ======== Configurações a serem recebidas do ESP de configuração ========
+// ========================================================================
+// -------- Definições do Wifi --------
+#ifndef STASSID
+#define STASSID "RIBEIRAO 2.4G" // "Toriko"
+#define STAPSK  "r28e61g23" // "12345678"
+#endif
+// -------- Definições do servidor --------
+#define SERVER_NAME "http://192.168.15.16:8080"
+#define SELF_NAME "RGB Frame 1"
+#define SELF_ID "5"
+// Identifica os projetos
+Dictionary &projectIds = *(new Dictionary(3));
+// -------- Definições do MQTT --------
+#define MQTT_BROKER "192.168.15.16"
+#define MQTT_PORT 1883
+class CommunicationTopic {
+  public:
+    String communication = "Communication";
+    String connection = "Connection";
+}
+COMMUNICATION_TOPIC = CommunicationTopic();
+class RGBFrameTopic {
+  public: 
+    String project     = "RGBFrame";
+    String outRGBStrip = "Outputs/RGBStrip";
+}
+RGB_FRAME_TOPIC = RGBFrameTopic();
+String subscriptionList[2] = {RGB_FRAME_TOPIC.project + "/" + SELF_NAME + "/" + RGB_FRAME_TOPIC.outRGBStrip + "/#",
+                              COMMUNICATION_TOPIC.communication + "/" + COMMUNICATION_TOPIC.connection + "/#"}; // No project name cause requester identfies the connection
+const int numSubscriptions = len(subscriptionList);
+// ========================================================================
+
+// Pinagem e configuração
 #define LED_PIN     D1
 #define NUM_LEDS    30
+CRGB leds[NUM_LEDS];
 #define BRIGHTNESS  50
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
-CRGB leds[NUM_LEDS];
-
 #define UPDATES_PER_SECOND 100
-#define LED_1_1 0 // starts in 0
-#define LED_2_1 6
-#define LED_1_2 13 // starts in 0
-#define LED_2_2 7
-#define LED_1_3 14 // starts in 0
-#define LED_2_3 20
-#define LED_1_4 27 // starts in 0
-#define LED_2_4 21
-#define LED_PERCENTAGE 0.01 // 0.05
+#define LED_PERCENTAGE 0.05 // 0.05
 
+// Configurações de rede, do servidor e do MQTT
+const char* ssid       = STASSID;
+const char* password   = STAPSK;
+const char* serverName = SERVER_NAME;
+const char* mqttBroker = MQTT_BROKER;
+const int   mqttPort   = MQTT_PORT;
+WiFiClient wifi;
+HTTPClient http;
+PubSubClient mqtt(wifi);
+String request_topic;
+String initial_topic;
+
+// RGB strip variáveis
 CRGBPalette256 currentFadePalette;
 CRGBPalette256 fadingPalette;
 CRGBPalette256 toFadePalette;
 CRGBPalette16 initialColorArray;
 CRGBPalette16 changingColorArray;
 CRGBPalette16 targetColorArray;
-CRGB currentColor; // To set current led
+CRGB currentColor;
 TBlendType currentBlending;
-
-int led_1_Array[5]; // num of sequences in each set + 1
-int led_2_Array[5]; // num of sequences in each set + 1
-int led_1_m_Array[5]; // num of sequences in each set + 1
-int led_2_m_Array[5]; // num of sequences in each set + 1
-int currentLed_Array[5]; // num of sequences in each set + 1
-int currentLed_m_Array[5]; // num of sequences in each set + 1
-
-bool redCheck_Array[5]; // num of sequences in each set + 1
-bool greenCheck_Array[5]; // num of sequences in each set + 1
-bool blueCheck_Array[5]; // num of sequences in each set + 1
 
 // Sequence -> defined by a initial color, a target color and a time to fade
 // Sequence set -> defined by total sequences across all the leds (in the same time frame)
-// numOfSequencesInSet -> array of number of sequences in each sequence set
-int numOfSequencesInSet[6]; // num of sets
-int numOfSequencesInSetLen;
-int sequenceSet = 0;
-
+// led_1_Array -> array with first led position of all sequences of current set
+// led_2_Array -> array with last led position of all sequences of current set
+// led_1_m_Array -> array with led_1_Array value mapped to 0-256 (used during color distribution)
+// led_2_m_Array -> array with led_2_Array value mapped to 0-256 (used during color distribution)
+// currentLed_Array -> array with led position of the "changing color" led, of all sequences of current set
+// currentLed_m_Array -> array with currentLed_Array value mapped to 0-256 (used during color distribution)
+// redCheck_Array -> array with booleans indicating if the red color of the current led reached the minimal value for changing the current led, of all sequences of current set
+// greenCheck_Array -> array with booleans indicating if the green color of the current led reached the minimal value for changing the current led, of all sequences of current set
+// blueCheck_Array -> array with booleans indicating if the blue color of the current led reached the minimal value for changing the current led, of all sequences of current set
+int led_1_Array[17]; // num of sequences in each set + 1
+int led_2_Array[17]; // num of sequences in each set + 1
+int led_1_m_Array[17]; // num of sequences in each set + 1
+int led_2_m_Array[17]; // num of sequences in each set + 1
+int currentLed_Array[17]; // num of sequences in each set + 1
+int currentLed_m_Array[17]; // num of sequences in each set + 1
+bool redCheck_Array[17]; // num of sequences in each set + 1
+bool greenCheck_Array[17]; // num of sequences in each set + 1
+bool blueCheck_Array[17]; // num of sequences in each set + 1
 bool patternChanged = false; // Currently only works with same size sequences ending at the same time
+
+// Json variável
+StaticJsonDocument<1024> JsonConfig;
+
+// ================================================
+// ============ Wifi Initializations ==============
+// ================================================
+void init_wifi(){
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  byte wifi_tries = 0;
+
+  while (WiFi.status() != WL_CONNECTED and wifi_tries < 42) {
+    delay(500);
+    wifi_tries++;
+  }
+
+  if (WiFi.status() != WL_CONNECTED) for (;;); // Trava a execução
+}
+
+// ================================================
+// =============== MQTT Functions =================
+// ================================================
+unsigned long hexStrToInt(String str) {
+   char buffer [256];
+   unsigned long ul;
+   str.toCharArray(buffer, str.length() + 1);
+   ul = strtoul(buffer, 0, 16);
+   return ul;
+}
+
+unsigned long intStrToInt(String str) {
+   char buffer [256];
+   unsigned long ul;
+   str.toCharArray(buffer, str.length() + 1);
+   ul = strtoul(buffer, 0, 10);
+   return ul;
+}
+
+void mqtt_callback(char* topic, byte* payload, unsigned int length) {
+  // Payload to String conversion
+  int i = 0;
+  char strArrayPayload[length+1];
+  for (i=0; i < length; i++) {
+    strArrayPayload[i]=(char)payload[i];
+  }
+  strArrayPayload[i] = 0;
+  // Array of char with null termination = String
+
+  // Split topic string
+  String topicString = String(topic);
+  String topicStringToSplit = String(topic);
+  String topicSplitString[20];
+  String lastTopicSplitString;
+  int StringCount = 0;
+  while (topicStringToSplit.length() > 0) {
+    int index = topicStringToSplit.indexOf("/");
+    if (index == -1) { // No / found
+      topicSplitString[StringCount++] = topicStringToSplit;
+      lastTopicSplitString = topicStringToSplit;
+      break;
+    }
+    else {
+      topicSplitString[StringCount++] = topicStringToSplit.substring(0, index);
+      topicStringToSplit = topicStringToSplit.substring(index+1);
+    }
+  }
+
+  // If message received was not published by itself
+  if (lastTopicSplitString != SELF_ID) {
+    // RGB Frame
+    if (topicString.indexOf(RGB_FRAME_TOPIC.project) >= 0) {
+      // Output / RGB Strip
+      if (topicString.indexOf(RGB_FRAME_TOPIC.outRGBStrip) >= 0) {
+        // RGBFrame/RGBFrame1/Outputs/RGBStrip/id
+        String requested_project_name = topicSplitString[1];
+        String requester_project_number = topicSplitString[4];
+        String requested_id_str = projectIds[requested_project_name];
+        int requested_id = intStrToInt(requested_id_str);
+        
+        deserializeJson(JsonConfig, payload, length); // Modifica a string original
+        changeSequencePattern(); // change toFade palette with setToFadePaletteForward or setToFadePaletteBackward
+      }
+    }
+  }
+  
+}
+
+void mqtt_reconnect() {
+  String clientId = SELF_NAME; 
+  if (mqtt.connect(clientId.c_str())) {
+    mqtt.setBufferSize(1024);
+    mqtt_resubscribe();
+  }
+}
+
+void mqtt_resubscribe() {
+  for (int i = 0; i<numSubscriptions; i++) {
+    char buff[128];
+    subscriptionList[i].toCharArray(buff, 128);
+    mqtt.subscribe(buff);
+  }
+}
+
+//
+////
+//
 
 void setup() {
     delay(3000); // power-up safety delay
     Serial.begin(9600);
     
+    // ============= RGB Strip Setup =============
     // Reset all leds
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness( BRIGHTNESS );
@@ -74,24 +231,39 @@ void setup() {
     }
     currentBlending = LINEARBLEND; // NOBLEND  LINEARBLEND
 
-    // Populate array of numOfSequencesInSet
-    numOfSequencesInSet[0] = 5;
-    numOfSequencesInSet[1] = 5;
-    numOfSequencesInSet[2] = 5;
-    numOfSequencesInSet[3] = 5;
-    numOfSequencesInSet[4] = 5;
-    numOfSequencesInSet[5] = 5;
-    numOfSequencesInSetLen = 6;
-     // ------- Time Slot Update -------
-    changeSequencePattern(); // change toFade palette with setToFadePaletteForward or setToFadePaletteBackward
-    // -------------------------------
+    // ============= Initializations Setup =============
+    // Wifi
+    init_wifi();
+    delay(250);
+
+    // MQTT
+    mqtt.setServer(mqttBroker, mqttPort);
+    mqtt.setCallback(mqtt_callback);
+    delay(250);
+    // Defined topics
+    initial_topic = COMMUNICATION_TOPIC.communication + "/" + COMMUNICATION_TOPIC.connection + "/" + SELF_ID;
+    request_topic = RGB_FRAME_TOPIC.project + "/" + SELF_NAME + "/" + RGB_FRAME_TOPIC.outRGBStrip + "/" + SELF_ID;
+
+    // Projects ids dictionary
+    projectIds(SELF_NAME, SELF_ID);
 
     currentColor = initialColorArray[0]; // Color to start the fade effect
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Reset");
 }
 
 
 void loop() {
+  bool mqttConnected = mqtt.connected();
+  
+  if (!mqttConnected) {
+    mqtt_reconnect();//------------------------------------------------------>
+    mqtt.publish(initial_topic.c_str(), "ON");
+    mqtt.publish(request_topic.c_str(), "Request");
+  }
+  mqtt.loop();//------------------------------------------------------>
+
   static uint8_t startIndex = 0;
   startIndex = startIndex + 0; /* motion speed */ // Ciclico entre 0 e 255
   
@@ -112,34 +284,35 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
     int led_1, led_2, led_1_m, led_2_m;
     int currentLed, currentLed_m;
     CRGB initialColor, targetColor, changingColor;
+    int sequencesInSet;
     int seq = 0;
+
+    sequencesInSet =  JsonConfig["Total"];
 
     for(int i = 0; i < NUM_LEDS; i++) {
         i_m = map(i, 0, NUM_LEDS-1, 0, 255);
+        
 
         // Change values of led_1, led_2, currentLed, initialColor, targetColor and changingColor
         // Depending on the sequence of sequenceSet
-        for (int seqIt = 1; seqIt < 5; seqIt++) { // ITERATE OVER SEQUENCES -> TO CHANGE LATER
-          if (seqIt < numOfSequencesInSet[sequenceSet]) {
-            if (i == led_1_Array[seqIt] || i == led_2_Array[seqIt]) {
-              if (i == led_1_Array[seqIt]) toFadePalette[i_m] = initialColorArray[seqIt];
-              if (i == led_2_Array[seqIt]) toFadePalette[i_m] = targetColorArray[seqIt];
-              led_1 = led_1_Array[seqIt];
-              led_2 = led_2_Array[seqIt];
-              led_1_m = led_1_m_Array[seqIt];
-              led_2_m = led_2_m_Array[seqIt];
-              currentLed = currentLed_Array[seqIt];
-              currentLed_m = currentLed_m_Array[seqIt];
+        for (int seqIt = 1; seqIt <= sequencesInSet; seqIt++) { // ITERATE OVER SEQUENCES
+          if (i == led_1_Array[seqIt] || i == led_2_Array[seqIt]) {
+            if (i == led_1_Array[seqIt]) toFadePalette[i_m] = initialColorArray[seqIt];
+            if (i == led_2_Array[seqIt]) toFadePalette[i_m] = targetColorArray[seqIt];
+            led_1 = led_1_Array[seqIt];
+            led_2 = led_2_Array[seqIt];
+            led_1_m = led_1_m_Array[seqIt];
+            led_2_m = led_2_m_Array[seqIt];
+            currentLed = currentLed_Array[seqIt];
+            currentLed_m = currentLed_m_Array[seqIt];
 
-              initialColor = initialColorArray[seqIt];
-              targetColor = targetColorArray[seqIt];
-              changingColor = changingColorArray[seqIt];
+            initialColor = initialColorArray[seqIt];
+            targetColor = targetColorArray[seqIt];
+            changingColor = changingColorArray[seqIt];
 
-              seq = seqIt;
-              break;
-            }
+            seq = seqIt;
+            break;
           }
-          else break;
         }
         
         if ((led_2 > led_1 && i >= led_1 && i <= led_2) || (led_2 < led_1 && i <= led_1 && i >= led_2)) {
@@ -246,7 +419,10 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
           blueCheck_Array[seq] = false;
 
           currentFadePalette = toFadePalette; // No futuro: mudar para atualizar o currentFadePalette apenas quando a última sequencia tiver sido atulizada (que pode demorar mais que outras sequencias)
+          
+          mqtt.publish(request_topic.c_str(), "Request");
           changeSequencePattern();
+
           patternChanged = true;
         }
 
@@ -258,185 +434,30 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
 
 void changeSequencePattern() {
   // real range 1-110, test range 1-30 // Starts with first led = 0
-  for (int seq = 1; seq < 5; seq++) { // ITERATE OVER SEQUENCES -> TO CHANGE LATER
-    if (seq < numOfSequencesInSet[sequenceSet]) {
-      if (sequenceSet == 0) {
-        if (seq == 1) {
-          // *** Substituir para algo do tipo JsonConfig[sequenceSet][seq][Led_1]
-          // *** Tirar os ifs anteriores
-          led_1_Array[seq] = LED_1_1; // GET FROM JSON 
-          led_2_Array[seq] = LED_2_1; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-        if (seq == 2) {
-          led_1_Array[seq] = LED_1_2; // GET FROM JSON
-          led_2_Array[seq] = LED_2_2; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-        if (seq == 3) {
-          led_1_Array[seq] = LED_1_3; // GET FROM JSON
-          led_2_Array[seq] = LED_2_3; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-        if (seq == 4) {
-          led_1_Array[seq] = LED_1_4; // GET FROM JSON
-          led_2_Array[seq] = LED_2_4; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-      }
-      if (sequenceSet == 1) {
-        if (seq == 1) {
-          led_1_Array[seq] = LED_2_1; // GET FROM JSON
-          led_2_Array[seq] = LED_1_1; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-        if (seq == 2) {
-          led_1_Array[seq] = LED_2_2; // GET FROM JSON
-          led_2_Array[seq] = LED_1_2; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-        if (seq == 3) {
-          led_1_Array[seq] = LED_2_3; // GET FROM JSON
-          led_2_Array[seq] = LED_1_3; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-        if (seq == 4) {
-          led_1_Array[seq] = LED_2_4; // GET FROM JSON
-          led_2_Array[seq] = LED_1_4; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-      }
-      if (sequenceSet == 2) {
-        if (seq == 1) {
-          led_1_Array[seq] = LED_1_1; // GET FROM JSON
-          led_2_Array[seq] = LED_2_1; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-        if (seq == 2) {
-          led_1_Array[seq] = LED_1_2; // GET FROM JSON
-          led_2_Array[seq] = LED_2_2; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-        if (seq == 3) {
-          led_1_Array[seq] = LED_1_3; // GET FROM JSON
-          led_2_Array[seq] = LED_2_3; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-        if (seq == 4) {
-          led_1_Array[seq] = LED_1_4; // GET FROM JSON
-          led_2_Array[seq] = LED_2_4; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-      }
-      if (sequenceSet == 3) {
-        if (seq == 1) {
-          led_1_Array[seq] = LED_2_1; // GET FROM JSON 
-          led_2_Array[seq] = LED_1_1; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-        if (seq == 2) {
-          led_1_Array[seq] = LED_2_2; // GET FROM JSON
-          led_2_Array[seq] = LED_1_2; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-        if (seq == 3) {
-          led_1_Array[seq] = LED_2_3; // GET FROM JSON
-          led_2_Array[seq] = LED_1_3; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-        if (seq == 4) {
-          led_1_Array[seq] = LED_2_4; // GET FROM JSON
-          led_2_Array[seq] = LED_1_4; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Red; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Blue; // GET FROM JSON
-        }
-      }
-      if (sequenceSet == 4) {
-        if (seq == 1) {
-          led_1_Array[seq] = LED_1_1; // GET FROM JSON
-          led_2_Array[seq] = LED_2_1; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-        if (seq == 2) {
-          led_1_Array[seq] = LED_1_2; // GET FROM JSON
-          led_2_Array[seq] = LED_2_2; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-        if (seq == 3) {
-          led_1_Array[seq] = LED_1_3; // GET FROM JSON
-          led_2_Array[seq] = LED_2_3; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-        if (seq == 4) {
-          led_1_Array[seq] = LED_1_4; // GET FROM JSON
-          led_2_Array[seq] = LED_2_4; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Blue; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Green; // GET FROM JSON
-        }
-      }
-      if (sequenceSet == 5) {
-        if (seq == 1) {
-          led_1_Array[seq] = LED_2_1; // GET FROM JSON
-          led_2_Array[seq] = LED_1_1; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-        if (seq == 2) {
-          led_1_Array[seq] = LED_2_2; // GET FROM JSON
-          led_2_Array[seq] = LED_1_2; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-        if (seq == 3) {
-          led_1_Array[seq] = LED_2_3; // GET FROM JSON
-          led_2_Array[seq] = LED_1_3; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-        if (seq == 4) {
-          led_1_Array[seq] = LED_2_4; // GET FROM JSON
-          led_2_Array[seq] = LED_1_4; // GET FROM JSON
-          initialColorArray[seq] = CRGB::Green; // GET FROM JSON
-          targetColorArray[seq] = CRGB::Red; // GET FROM JSON
-        }
-      }
-      
+  int sequencesInSet =  JsonConfig["Total"];
 
-      led_1_m_Array[seq] = map(led_1_Array[seq], 0, NUM_LEDS-1, 0, 255);
-      led_2_m_Array[seq] = map(led_2_Array[seq], 0, NUM_LEDS-1, 0, 255);
-      currentLed_Array[seq] = led_1_Array[seq];
-      currentLed_m_Array[seq] = map(currentLed_Array[seq], 0, NUM_LEDS-1, 0, 255);
+  for (int seq = 1; seq <= sequencesInSet; seq++) {
+    String str_seq = String(seq);
+    led_1_Array[seq] = JsonConfig[str_seq]["L1"];
+    led_2_Array[seq] = JsonConfig[str_seq]["L2"];
+    initialColorArray[seq].r = JsonConfig[str_seq]["ICr"];
+    initialColorArray[seq].g = JsonConfig[str_seq]["ICg"];
+    initialColorArray[seq].b = JsonConfig[str_seq]["ICb"];
+    targetColorArray[seq].r = JsonConfig[str_seq]["TCr"];
+    targetColorArray[seq].g = JsonConfig[str_seq]["TCg"];
+    targetColorArray[seq].b = JsonConfig[str_seq]["TCb"];
 
-      if (led_2_Array[seq] > led_1_Array[seq]) setToFadePaletteForward(led_1_m_Array[seq], led_2_m_Array[seq], initialColorArray[seq], targetColorArray[seq]);
-      else setToFadePaletteBackward(led_1_m_Array[seq], led_2_m_Array[seq], initialColorArray[seq], targetColorArray[seq]);
-    }
-    else break;
+    led_1_m_Array[seq] = map(led_1_Array[seq], 0, NUM_LEDS-1, 0, 255);
+    led_2_m_Array[seq] = map(led_2_Array[seq], 0, NUM_LEDS-1, 0, 255);
+    currentLed_Array[seq] = led_1_Array[seq];
+    currentLed_m_Array[seq] = map(currentLed_Array[seq], 0, NUM_LEDS-1, 0, 255);
+
+    if (led_2_Array[seq] > led_1_Array[seq]) setToFadePaletteForward(led_1_m_Array[seq], led_2_m_Array[seq], initialColorArray[seq], targetColorArray[seq]);
+    else setToFadePaletteBackward(led_1_m_Array[seq], led_2_m_Array[seq], initialColorArray[seq], targetColorArray[seq]);
   }
-
-  sequenceSet++;
-  if (sequenceSet == 6) sequenceSet = 0;//numOfSequencesInSetLen) sequenceSet = 0;
 }
 
-void setToFadePaletteBackward(int led_1_m, int led_2_m, CRGB initialColor, CRGB targetColor) { // led_2 < led_1
-  //fill_solid(toFadePalette, 256, CRGB::Black);
+void setToFadePaletteBackward(int led_1_m, int led_2_m, CRGB initialColor, CRGB targetColor) {
   float redDiff, greenDiff, blueDiff;
   redDiff = initialColor.r - targetColor.r;
   greenDiff = initialColor.g - targetColor.g;
@@ -452,8 +473,7 @@ void setToFadePaletteBackward(int led_1_m, int led_2_m, CRGB initialColor, CRGB 
   }
 }
 
-void setToFadePaletteForward(int led_1_m, int led_2_m, CRGB initialColor, CRGB targetColor) { // led_2 > led_1
-  //fill_solid(toFadePalette, 256, CRGB::Black);
+void setToFadePaletteForward(int led_1_m, int led_2_m, CRGB initialColor, CRGB targetColor) {
   float redDiff, greenDiff, blueDiff;
   redDiff = targetColor.r - initialColor.r;
   greenDiff = targetColor.g - initialColor.g;
@@ -467,33 +487,20 @@ void setToFadePaletteForward(int led_1_m, int led_2_m, CRGB initialColor, CRGB t
     blueColor = initialColor.b + (j * blueDiff)/nLeds;
     toFadePalette[led_1_m+j] = CRGB(redColor, greenColor, blueColor);
   }
-  /*
-  for (int i=0; i<255; i++) {
-    Serial.print("id: ");
-    Serial.print(i);
-    Serial.print(", red: ");
-    Serial.print(finalPalette[i].r);
-    Serial.print(", green: ");
-    Serial.print(finalPalette[i].g);
-    Serial.print(", blue: ");
-    Serial.println(finalPalette[i].b);
-  }
-  */
 }
 
-// Helper function that blends one uint8_t toward another by a given amount
 void nblendU8TowardU8(uint8_t &current, const uint8_t target)
 {
   if (current == target) return;
 
   if (current < target) {
     uint8_t delta = target - current;
-    delta = scale8_video(delta, 16); // 4 (old 120)
+    delta = scale8_video(delta, 4); // 4, 16
     current += delta;
   }
   else {
     uint8_t delta = current - target;
-    delta = scale8_video(delta, 16); // 4
+    delta = scale8_video(delta, 4); // 4, 16
     current -= delta;
   }
 }
