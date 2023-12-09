@@ -36,3 +36,7 @@ Setting up the SSH communication: https://www.onlogic.com/company/io-hub/how-to-
 > **_TO DO:_** sudo apt-get update
 >
 > sudo apt-get install mosquitto
+>
+> sudo apt-get install git
+>
+> pip install django

@@ -1,4 +1,5 @@
 gsap.registerPlugin(Flip); // Flip between css classes with animation
+let home_url = ""
 
 // Cookie functions
 function eraseCookie(name) {   
@@ -386,7 +387,7 @@ function newDraggable(draggables) {
                 project2_model = model
                 // Make post request to create
                 let xhr = new XMLHttpRequest();
-                xhr.open("POST", "http://192.168.56.1:8080/");
+                xhr.open("POST", home_url);
                 xhr.setRequestHeader("Accept", "application/json");
                 xhr.setRequestHeader("Content-Type", "application/json");
                 let data = `{"type": "connections",
@@ -528,7 +529,7 @@ if(interface_container) {
         
         // Update row and column in db
         let xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://192.168.56.1:8080/");
+        xhr.open("POST", home_url);
         xhr.setRequestHeader("Accept", "application/json");
         xhr.setRequestHeader("Content-Type", "application/json");
         let data = `{"type": "position",
@@ -629,7 +630,7 @@ function newLineDelete(btns_line_del) {
             let end_id = btn.id.split("-")[1]
             // Make post request to delete line
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://192.168.56.1:8080/");
+            xhr.open("POST", home_url);
             xhr.setRequestHeader("Accept", "application/json");
             xhr.setRequestHeader("Content-Type", "application/json");
             let data = `{"type": "delete connection",
@@ -656,7 +657,7 @@ function newItemDelete(btns_item_del) {
             let id = btn.id
             // Make post request to delete line
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://192.168.56.1:8080/");
+            xhr.open("POST", home_url);
             xhr.setRequestHeader("Accept", "application/json");
             xhr.setRequestHeader("Content-Type", "application/json");
             let data = `{"type": "delete project",
