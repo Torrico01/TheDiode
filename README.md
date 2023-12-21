@@ -28,9 +28,12 @@ Setting up the SSH communication: https://www.onlogic.com/company/io-hub/how-to-
 
 
 ### Configuring static IP addresses and open ports
-> **_TO DO:_** Set DHCP static IP address for Raspberry device, from router website
+> **_TO DO:_** ~~Set DHCP static IP address for Raspberry device, from router website~~
 >
-> Add open port rule for website
+> ~~Add open port rule for website (current: 8080)~~
+
+~~Check public ip address in: https://www.whatismyip.com/~~
+
 
 ### Installing libraries
 > **_TO DO:_** sudo apt-get update
@@ -40,3 +43,35 @@ Setting up the SSH communication: https://www.onlogic.com/company/io-hub/how-to-
 > sudo apt-get install git
 >
 > pip install django
+
+
+### Running server
+> **_TO DO:_** Clone TheDiode repository
+>
+> Run server in local ip in specific port
+
+> [!TIP]
+> Run server: python manage.py runserver >>Port<<
+
+
+### Setting up Ngrok tunneling
+> **_TO DO:_** Install ngrok through apt
+>
+> Run Ngrok instance in server port
+
+Ngrok basics: https://dashboard.ngrok.com/get-started/setup/raspberrypi
+
+> [!TIP]
+> Run Ngrok in static ip: ngrok http --domain=>>Ngrok domain<<:>>Port<<
+
+
+> [!IMPORTANT]
+> Current commands in raspberry:
+>
+> Open two instances of Putty
+>
+> 1. cd Desktop/TheDiode
+>
+> 1. python manage.py runserver 8080
+>
+> 2. ngrok http --domain=pro-absolute-gazelle.ngrok-free.app 8080

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from datetime import datetime
 from django.apps import apps
@@ -46,24 +46,6 @@ def conta_componentes():
         categoria.save()
         count_total = 0
 
-                
-def painelDeArmazenamentoModular_splitIds(request, cookie_name):
-    criar_painel_ids = request.COOKIES.get(cookie_name)
-    if (criar_painel_ids != None): criar_painel_num_ids = len(criar_painel_ids.split(","))
-    else: criar_painel_num_ids = 0
-    return criar_painel_num_ids
-
-def painelDeArmazenamentoModular_contextMsg(request):
-    # Conta ids selecionados
-    criar_painel_num_ids = painelDeArmazenamentoModular_splitIds(request, "criar_painel_ids")
-    # Escreve mensagem da criação do painel
-    if request.COOKIES.get('criar_painel') == "True" and criar_painel_num_ids == 9:
-        criar_painel_msg = "todos os componentes selecionados"
-    elif request.COOKIES.get('criar_painel') == "True":
-        criar_painel_msg = str(criar_painel_num_ids) + " componentes selecionados"
-    else: 
-        criar_painel_msg = 0
-    return criar_painel_msg
 
 # Defining classes to be used in html by accessing its values
 class InterfaceProject( object ):
@@ -351,3 +333,139 @@ def criarpaineldearmazenamentomodular(request):
         response = render(request, 'core/painelDeArmazenamentoMod.html', context)
         response.set_cookie('criar_painel', "True") # Set cookie true
     return response
+
+def painelDeArmazenamentoModular_splitIds(request, cookie_name):
+    criar_painel_ids = request.COOKIES.get(cookie_name)
+    if (criar_painel_ids != None): criar_painel_num_ids = len(criar_painel_ids.split(","))
+    else: criar_painel_num_ids = 0
+    return criar_painel_num_ids
+
+def painelDeArmazenamentoModular_contextMsg(request):
+    # Conta ids selecionados
+    criar_painel_num_ids = painelDeArmazenamentoModular_splitIds(request, "criar_painel_ids")
+    # Escreve mensagem da criação do painel
+    if request.COOKIES.get('criar_painel') == "True" and criar_painel_num_ids == 9:
+        criar_painel_msg = "todos os componentes selecionados"
+    elif request.COOKIES.get('criar_painel') == "True":
+        criar_painel_msg = str(criar_painel_num_ids) + " componentes selecionados"
+    else: 
+        criar_painel_msg = 0
+    return criar_painel_msg
+
+# --> RGB Frame functions
+# -----------------------
+def hex_to_rgb(hex):
+  return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
+
+def rgbframe_del_pattern(request, id, seq_id, patt_id):
+    if request.method == "POST":
+        # Get json from RGB Frame project
+        rgbframe_obj = RGBFrame.objects.get(id=id)
+        full_json = rgbframe_obj.rgb_strip
+        if (full_json[str(seq_id)]["Total"] == 1): # Delete pattern and sequence
+            del full_json[str(seq_id)]
+            # Update sequence numbers on the json
+            for seq in range(seq_id, len(full_json)):
+                full_json[str(seq)] = full_json.pop(str(seq+1))
+        else:
+            del full_json[str(seq_id)][str(patt_id)] # Delete pattern
+            # Update pattern numbers on the sequence
+            for patt in range(patt_id, len(full_json[str(seq_id)])):
+                full_json[str(seq_id)][str(patt)] = full_json[str(seq_id)].pop(str(patt+1))
+            # Update total
+            full_json[str(seq_id)]["Total"] = len(full_json[str(seq_id)])-1        
+        # Save updated json
+        rgbframe_obj.rgb_strip = full_json
+        rgbframe_obj.save()
+    # Returns
+    context = {}
+    return render(request, 'core/rgbframeDelPattern.html', context)
+
+def rgbframe_add_sequence(request, id):
+    if request.method == "POST":
+        form = RGBFrameAddSequenceForm(request.POST)
+        L1 = form['L1'].value()
+        L2 = form['L2'].value()
+        Color1 = form['Color1'].value()
+        Color2 = form['Color2'].value()
+        TupleColor1 = hex_to_rgb(Color1[1:])
+        TupleColor2 = hex_to_rgb(Color2[1:])
+        # Get json from RGB Frame project
+        rgbframe_obj = RGBFrame.objects.get(id=id)
+        full_json = rgbframe_obj.rgb_strip
+        # Count sequences in json
+        count = 0
+        for sequence_num in full_json:
+            count += 1
+        # Add single pattern to new sequence
+        pattern = {"Total": 1}
+        pattern["1"] = {"L1": L1,
+                        "L2": L2,
+                        "ICr": TupleColor1[0],
+                        "ICg": TupleColor1[1],
+                        "ICb": TupleColor1[2],
+                        "TCr": TupleColor2[0],
+                        "TCg": TupleColor2[1],
+                        "TCb": TupleColor2[2]}
+        # Append to full json
+        full_json[str(count)] = pattern
+        if form.is_valid():
+            # Update json value in database
+            rgbframe_obj.rgb_strip = full_json
+            rgbframe_obj.save()
+            # Return http response
+            return HttpResponseRedirect('')
+    else:
+        form = RGBFrameAddSequenceForm()
+    context = {'form': form}
+    return render(request, 'core/rgbframeAddSequence.html', context)
+
+def rgbframe_explore(request, id):
+    rgbframe_obj = RGBFrame.objects.get(id=id)
+    full_json = rgbframe_obj.rgb_strip
+    sequences_array = []
+    rules_array = []
+    for sequence_num in full_json:
+        sequence = full_json[sequence_num]
+        pattern_array = []
+        for pattern_num in sequence:
+            if pattern_num != 'Total':
+                pattern = full_json[sequence_num][pattern_num]
+                pattern_array.append(RGBFramePattern(pattern_num,
+                                                     pattern['L1'],
+                                                     pattern['L2'],
+                                                     pattern['ICr'],
+                                                     pattern['ICg'],
+                                                     pattern['ICb'],
+                                                     pattern['TCr'],
+                                                     pattern['TCg'],
+                                                     pattern['TCb']))
+        sequences_array.append(RGBFrameSequence(sequence_num,
+                                                pattern_array))
+
+    context = {'sequences': sequences_array,
+               'rules': rules_array,
+               'id': id}
+    return render(request, 'core/rgbframeExplore.html', context)
+
+def rgbframe(request):
+    rgbframe_all = RGBFrame.objects.all()
+    context = {'rgbframe_all': rgbframe_all}
+    return render(request, 'core/rgbframe.html', context)
+
+class RGBFrameSequence( object ):
+   def __init__( self, num, pattern_array ):
+       self.num = num
+       self.patterns = pattern_array
+       
+class RGBFramePattern( object ):
+   def __init__( self, num, L1, L2, ICr, ICg, ICb, TCr, TCg, TCb ):
+       self.num = num
+       self.L1 = L1
+       self.L2 = L2
+       self.ICr = ICr
+       self.ICg = ICg
+       self.ICb = ICb
+       self.TCr = TCr
+       self.TCg = TCg
+       self.TCb = TCb

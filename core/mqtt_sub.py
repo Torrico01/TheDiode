@@ -114,7 +114,7 @@ def on_message(client, userdata, message):
                 sequence += 1
                 if (sequence >= len(jsonDictAll)): sequence = 0
                 db_query = RGBFrame.objects.get(name=requester_project_name)
-                db_query.current_sequence = sequence
+                db_query.current_sequence = sequence # number of sequence currently being transmitted
                 db_query.save()
                 # Send to project
                 jsonToSend = json.dumps(jsonDict)

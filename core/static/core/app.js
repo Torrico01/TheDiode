@@ -38,6 +38,15 @@ function appendCookieAndRedirect(name,value,days,separator,url) {
         setCookieAndRedirect(name,value,days,url);
     }
 }
+function reload_element(id){
+    var container = document.getElementById(id);
+    var content = container.innerHTML;
+    container.innerHTML= content; 
+}
+function reload_page(){
+    sleep(100).then(() => {
+        location.reload(); });
+}
 // ------------------
 // Change page delay
 function sleep(ms) {
@@ -844,3 +853,24 @@ if (submitEffectBtn) {
 }
 
 // ------------------
+
+const modal = new bootstrap.Modal(document.getElementById("modal"))
+
+htmx.on("htmx:beforeSwap", (e) => {
+    // Empty response targeting #dialog => hide the modal
+    if (e.detail.target.id == "dialog" && !e.detail.xhr.response) {
+      modal.hide()
+      e.detail.shouldSwap = false
+    }
+  })
+
+htmx.on("htmx:afterSwap", (e) => {
+    // Response targeting #dialog => show the modal
+    if (e.detail.target.id == "dialog") {
+        modal.show()
+    }
+})
+
+htmx.on("hidden.modal", () => {
+    document.getElementById("dialog").innerHTML = ""
+})

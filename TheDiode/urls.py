@@ -25,6 +25,7 @@ from core.views import *
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
+    path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
     path('componentes/', categorias, name='categorias'),
     path('componentes/search/', search, name='search'),
     path('componentes/criarcategoria/', criarcategoria, name='criarcategoria'),
@@ -35,5 +36,8 @@ urlpatterns = [
     path('componentes/categoria<int:id_categoria>/tipo<int:id_tipo>/componente<int:id>', modificar, name='modificar'),
     path('painel/', paineldearmazenamentomodular, name='paineldearmazenamentomodular'),
     path('painel/criarpainel', criarpaineldearmazenamentomodular, name='criarpaineldearmazenamentomodular'),
-    path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
+    path('rgbframe/', rgbframe, name='rgbframe'),
+    path('rgbframe/explore<int:id>/', rgbframe_explore, name='rgbframe_explore'),
+    path('rgbframeAddSequence<int:id>/', rgbframe_add_sequence, name='rgbframeAddSequence'),
+    path('rgbframeDelPattern<int:id>/<int:seq_id>/<int:patt_id>', rgbframe_del_pattern, name='rgbframeDelPattern'),
     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,0 +1,10 @@
+<form hx-post="{{ request.path }}" class="modal-content">
+    {% csrf_token %}
+    <div class="modal-header">
+      <h5 class="modal-title">Delete pattern?</h5>
+    </div>
+    <div class="modal-body">
+      <button type="button" data-dismiss="modal" class="btn-modal-cancel" style="background-color: rgb(186, 186, 186);">No</button>
+      <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
+    </div>
+  </form>

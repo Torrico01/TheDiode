@@ -40,6 +40,214 @@ body {
   transform: translateY(4px);
 }
 
+/***************** RGB Frame *****************/
+.rgbframe-main-container{
+  padding-top: 75px;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-bottom: 25px;
+  border-color: #000000;
+}
+
+.rgbframe-main-project-container{
+  display: flex;
+}
+
+.rgbframe-main-project-name{
+  color: white;
+  font-weight: 700;
+  background-color: #95b8f9;
+  padding-left: 70px;
+  padding-right: 70px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  border-radius: 0.2rem;
+}
+
+.rgbframe-main-btn{
+  position: relative;
+  left: 15px;
+  padding-top: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-bottom: 2px;
+  font-size: 15px;
+  font-weight: 100;
+
+  /* Middle border */
+  border: 0.15rem outset rgb(188, 199, 255);
+  border-radius: 0.2rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
+  /* Bg color */
+  background-color: #95b8f9;
+}
+
+.rgbframe-strip-btn.explore {
+  color: rgb(95, 95, 95);
+}
+
+/*** RGB Frame Strip ***/
+.rgbframe-strip-container {
+  padding-top: 75px;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-bottom: 25px;
+  height: 600px;
+  display: flex;
+}
+
+.rgbframe-strip-info-container{
+  width: 70%;
+  height: 100%;
+  background-color: #a4cdd6;
+  border: 0.2rem solid rgb(0, 0, 0);
+}
+
+.rgbframe-strip-rulesequence-container{
+  width: 100%;
+}
+
+.rgbframe-strip-rulegroup-container {
+  position: relative;
+  background-color: #a4cdd6;
+  border: 0.2rem solid rgb(0, 0, 0);
+  height: 50%;
+}
+
+.rgbframe-strip-rules-container {
+  background-color: #b0dce6;
+  height: 77%;
+  overflow: auto;
+}
+
+.rgbframe-strip-sequencegroup-container {
+  position: relative;
+  background-color: #a4cdd6;
+  border: 0.2rem solid rgb(0, 0, 0);
+  height: 50%;
+}
+
+.rgbframe-strip-sequences-container {
+  background-color: #b0dce6;
+  height: 77%;
+  overflow: auto;
+}
+
+.rgbframe-strip-patterns-container {
+  border: 0.1rem solid rgb(0, 0, 0);
+}
+
+.rgbframe-strip-pattern-container {
+  border-radius: 0%;
+  padding-right: 10px;
+  display: flex;
+}
+
+.rgbframe-strip-pattern-text{
+  position: relative;
+  left: 15px;
+}
+
+.rgbframe-strip-pattern-color{
+  position: relative;
+  top: 5px;
+  left: 15px;
+  height: 15px;
+  width: 25px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.rgbframe-strip-buttons {
+  position: absolute;
+  bottom: 16px;
+  left: 22px;
+}
+
+.rgbframe-strip-btn {
+  padding-top: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-bottom: 2px;
+  font-size: 15px;
+  font-weight: 100;
+
+  /* Middle border */
+  border: 0.15rem outset rgb(188, 199, 255);
+  border-radius: 0.2rem;
+  /* Outer border */
+  outline: 0.05rem solid rgb(0, 0, 0);
+  /* Bg color */
+  background-color: #95b8f9;
+}
+
+.rgbframe-strip-btn.delpatt {
+  position: relative;
+  left: 10px;
+  top: 5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(255, 188, 188);
+  /* Bg color */
+  background-color: #f99595;
+}
+
+.rgbframe-strip-btn.addpatt {
+  position: relative;
+  left: 5px;
+  top: -5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(188, 199, 255);
+  /* Bg color */
+  background-color: #95b8f9;
+}
+
+.rgbframe-strip-btn.editpatt {
+  position: relative;
+  top: 5px;
+  left: 5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(188, 255, 195);
+  /* Bg color */
+  background-color: #95f998;
+}
+
+.rgbframe-strip-btn.addrule{
+  color: rgb(95, 95, 95);
+}
+.rgbframe-strip-btn.delrule{
+  color: rgb(95, 95, 95);
+  border: 0.15rem outset rgb(255, 188, 188);
+  background-color: #f99595;
+  position: relative;
+  left: 10px;
+}
+.rgbframe-strip-btn.addsequence{
+  color: rgb(95, 95, 95);
+}
+.rgbframe-strip-btn.delsequence{
+  color: rgb(95, 95, 95);
+  border: 0.15rem outset rgb(255, 188, 188);
+  background-color: #f99595;
+  position: relative;
+  left: 10px;
+}
+
 
 /***************** Project card window *****************/
 .card-container {
@@ -319,7 +527,7 @@ body {
   /* Outer border */
   outline: 0.05rem solid rgb(0, 0, 0);
   /* Bg color */
-  background-color: rgb(214, 214, 214);
+  background-color: rgb(200, 200, 200);
 }
 
 .interface-item.dragging {

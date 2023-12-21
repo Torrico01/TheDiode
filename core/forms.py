@@ -1,9 +1,11 @@
 from django.forms import ModelForm
+from django.forms.widgets import TextInput
+from django import forms
 from components.models import *
 from projects.models import *
 
 class CriarCategoriaForm(ModelForm):
-    def __init__(self,*args,**kwargs):
+    def __init__(self,*args,**kwargs): # populates the post
         super(CriarCategoriaForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'criacao'})
 
@@ -65,3 +67,11 @@ class CriarPainelForm(ModelForm):
                   'slot_7',
                   'slot_8',
                   'slot_9',]
+        
+class RGBFrameAddSequenceForm(forms.Form):
+    L1 = forms.IntegerField(label="Initial LED")
+    L2 = forms.IntegerField(label="Final LED")
+    Color1 = forms.CharField(label='Initial Color', max_length=7,
+        widget=forms.TextInput(attrs={'type': 'color'}))
+    Color2 = forms.CharField(label='Final Color', max_length=7,
+        widget=forms.TextInput(attrs={'type': 'color'}))
