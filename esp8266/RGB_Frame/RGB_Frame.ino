@@ -43,13 +43,14 @@ const int numSubscriptions = len(subscriptionList);
 
 // Pinagem e configuração
 #define LED_PIN     D1
-#define NUM_LEDS    30
-CRGB leds[NUM_LEDS];
-#define BRIGHTNESS  50
+#define NUM_LEDS    134 // 134
+#define MAX_PATTERNS 16
+#define BRIGHTNESS  255
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 #define UPDATES_PER_SECOND 100
 #define LED_PERCENTAGE 0.05 // 0.05
+CRGB leds[NUM_LEDS];
 
 // Configurações de rede, do servidor e do MQTT
 const char* ssid       = STASSID;
@@ -64,17 +65,17 @@ String request_topic;
 String initial_topic;
 
 // RGB strip variáveis
-CRGBPalette256 currentFadePalette;
-CRGBPalette256 fadingPalette;
-CRGBPalette256 toFadePalette;
+CRGBPalette256 currentFadePalette; // static initial fading palette
+CRGBPalette256 fadingPalette; // dinamic fading palette
+CRGBPalette256 toFadePalette; // static fading into palette
 CRGBPalette16 initialColorArray;
 CRGBPalette16 changingColorArray;
 CRGBPalette16 targetColorArray;
 CRGB currentColor;
 TBlendType currentBlending;
 
-// Sequence -> defined by a initial color, a target color and a time to fade
-// Sequence set -> defined by total sequences across all the leds (in the same time frame)
+// Pattern -> defined by a initial color, a target color and a time to fade
+// Sequence -> defined by total patterns across all the leds (in the same time frame)
 // led_1_Array -> array with first led position of all sequences of current set
 // led_2_Array -> array with last led position of all sequences of current set
 // led_1_m_Array -> array with led_1_Array value mapped to 0-256 (used during color distribution)
@@ -84,19 +85,36 @@ TBlendType currentBlending;
 // redCheck_Array -> array with booleans indicating if the red color of the current led reached the minimal value for changing the current led, of all sequences of current set
 // greenCheck_Array -> array with booleans indicating if the green color of the current led reached the minimal value for changing the current led, of all sequences of current set
 // blueCheck_Array -> array with booleans indicating if the blue color of the current led reached the minimal value for changing the current led, of all sequences of current set
-int led_1_Array[17]; // num of sequences in each set + 1
-int led_2_Array[17]; // num of sequences in each set + 1
-int led_1_m_Array[17]; // num of sequences in each set + 1
-int led_2_m_Array[17]; // num of sequences in each set + 1
-int currentLed_Array[17]; // num of sequences in each set + 1
-int currentLed_m_Array[17]; // num of sequences in each set + 1
-bool redCheck_Array[17]; // num of sequences in each set + 1
-bool greenCheck_Array[17]; // num of sequences in each set + 1
-bool blueCheck_Array[17]; // num of sequences in each set + 1
-bool patternChanged = false; // Currently only works with same size sequences ending at the same time
+volatile int led_1_Array[MAX_PATTERNS + 1]; // num of sequences in each set + 1
+volatile int led_2_Array[MAX_PATTERNS + 1]; //
+volatile int led_1_m_Array[MAX_PATTERNS + 1]; //
+volatile int led_2_m_Array[MAX_PATTERNS + 1]; //
+volatile int currentLed_Array[MAX_PATTERNS + 1]; //
+volatile int currentLed_m_Array[MAX_PATTERNS + 1]; //
+volatile int patternTime_Array[MAX_PATTERNS + 1]; //
+bool redCheck_Array[MAX_PATTERNS + 1]; //
+bool greenCheck_Array[MAX_PATTERNS + 1]; //
+bool blueCheck_Array[MAX_PATTERNS + 1]; //
+bool patternCheck_Array[MAX_PATTERNS + 1]; // num of sequences in each set + 1
+bool patternChanged = false; // To prevent changing sequence when getting a new sequence
+bool sameSequence = false; // Check whether the receiving sequence is exactly the same as the previous received sequence
+bool patternsChecked = false; // Indicates when all patterns of the current sequence have ended their fading
+int sequencesInSet;
+unsigned long currentTime=0;
+unsigned long previousTime=0;
 
 // Json variável
-StaticJsonDocument<1024> JsonConfig;
+StaticJsonDocument<2048> JsonConfig;
+
+// Pallet changer variables
+CRGB initialColor, targetColor, changingColor, previousTargetColor;
+float ledPercentage = LED_PERCENTAGE;
+int rAdj = 0, gAdj = 0, bAdj = 0;
+String msg_mqtt = "";
+volatile int led_1 = 0, led_2 = 0, led_1_m = 0, led_2_m = 0;
+volatile int currentLed = 0, currentLed_m = 0;
+int seq = 1;
+int i_m = 0;
 
 // ================================================
 // ============ Wifi Initializations ==============
@@ -179,7 +197,6 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
       }
     }
   }
-  
 }
 
 void mqtt_reconnect() {
@@ -223,11 +240,12 @@ void setup() {
     fill_solid(currentFadePalette, 256, CRGB::Black);
     fill_solid(fadingPalette, 256, CRGB::Black);
     fill_solid(toFadePalette, 256, CRGB::Black);
-    fill_solid(changingColorArray, 16, CRGB::Black);
-    for (int seqIt = 0; seqIt < 5; seqIt++) { // ITERATE OVER SEQUENCES -> TO CHANGE LATER
+    fill_solid(changingColorArray, MAX_PATTERNS, CRGB::Black);
+    for (int seqIt = 0; seqIt < MAX_PATTERNS; seqIt++) { // ITERATE OVER SEQUENCES -> TO CHANGE LATER
       redCheck_Array[seqIt] = false;
       greenCheck_Array[seqIt] = false;
       blueCheck_Array[seqIt] = false;
+      patternCheck_Array[seqIt] = false;
     }
     currentBlending = LINEARBLEND; // NOBLEND  LINEARBLEND
 
@@ -248,6 +266,7 @@ void setup() {
     projectIds(SELF_NAME, SELF_ID);
 
     currentColor = initialColorArray[0]; // Color to start the fade effect
+    previousTargetColor = CRGB::Black;
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("Reset");
@@ -271,31 +290,21 @@ void loop() {
   
   FastLED.show();
   FastLED.delay(1000 / UPDATES_PER_SECOND);
+
+  currentTime=millis();
+  if(sameSequence && (currentTime-previousTime) >= 5000){
+    previousTime=currentTime;
+    mqtt.publish(request_topic.c_str(), "Request");
+  }
 }
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex )
-{
-    int i_m;
-    CRGB previousInitColor;
-    CRGB fadeColorAdjusted;
-    int rAdj, gAdj, bAdj;
-    float ledPercentage = LED_PERCENTAGE;
-
-    int led_1, led_2, led_1_m, led_2_m;
-    int currentLed, currentLed_m;
-    CRGB initialColor, targetColor, changingColor;
-    int sequencesInSet;
-    int seq = 0;
-
-    sequencesInSet =  JsonConfig["Total"];
-
-    for(int i = 0; i < NUM_LEDS; i++) {
+void FillLEDsFromPaletteColors( uint8_t colorIndex ) {
+    for(int i = 0; i < NUM_LEDS; i++) { // Iterate through all leds
         i_m = map(i, 0, NUM_LEDS-1, 0, 255);
-        
 
         // Change values of led_1, led_2, currentLed, initialColor, targetColor and changingColor
-        // Depending on the sequence of sequenceSet
-        for (int seqIt = 1; seqIt <= sequencesInSet; seqIt++) { // ITERATE OVER SEQUENCES
+        // Depending on the sequence/pattern of sequenceSet
+        for (int seqIt = 1; seqIt <= sequencesInSet; seqIt++) { // Iterate over sequences
           if (i == led_1_Array[seqIt] || i == led_2_Array[seqIt]) {
             if (i == led_1_Array[seqIt]) toFadePalette[i_m] = initialColorArray[seqIt];
             if (i == led_2_Array[seqIt]) toFadePalette[i_m] = targetColorArray[seqIt];
@@ -315,38 +324,33 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
           }
         }
         
-        if ((led_2 > led_1 && i >= led_1 && i <= led_2) || (led_2 < led_1 && i <= led_1 && i >= led_2)) {
-          if ((i < currentLed && led_2 > led_1) || (i > currentLed && led_2 < led_1)) {        
-            nblendU8TowardU8(fadingPalette[i_m].r, toFadePalette[i_m].r);
-            nblendU8TowardU8(fadingPalette[i_m].g, toFadePalette[i_m].g);
-            nblendU8TowardU8(fadingPalette[i_m].b, toFadePalette[i_m].b);
+        if ((led_2 > led_1 && i >= led_1 && i <= led_2) || (led_2 < led_1 && i <= led_1 && i >= led_2)) { // If  between initial and final leds, apply changes
+          if ((i < currentLed && led_2 > led_1) || (i > currentLed && led_2 < led_1)) { // If before current led, fade previous leds
+            nblendU8TowardU8(fadingPalette[i_m].r, toFadePalette[i_m].r, patternTime_Array[seq]);
+            nblendU8TowardU8(fadingPalette[i_m].g, toFadePalette[i_m].g, patternTime_Array[seq]);
+            nblendU8TowardU8(fadingPalette[i_m].b, toFadePalette[i_m].b, patternTime_Array[seq]);
   
             currentColor.r = fadingPalette[i_m].r;
             currentColor.g = fadingPalette[i_m].g;
             currentColor.b = fadingPalette[i_m].b;
           }
-          else if ((i > currentLed && led_2 > led_1) || (i < currentLed && led_2 < led_1)) {
-            currentColor.r = currentFadePalette[i_m].r;
-            currentColor.g = currentFadePalette[i_m].g;
-            currentColor.b = currentFadePalette[i_m].b;
-          }
-          else if (i == currentLed) {
-            if (currentLed == led_1) {
-              nblendU8TowardU8(changingColor.r, initialColor.r);
-              nblendU8TowardU8(changingColor.g, initialColor.g);
-              nblendU8TowardU8(changingColor.b, initialColor.b);
-            }
-            else if (currentLed == led_2) {
-              nblendU8TowardU8(changingColor.r, targetColor.r);
-              nblendU8TowardU8(changingColor.g, targetColor.g);
-              nblendU8TowardU8(changingColor.b, targetColor.b);
+          else if ((i > currentLed && led_2 > led_1) || (i < currentLed && led_2 < led_1)) { // If after current led, maintain next leds
+            if (led_2 == 0 && i == led_2) {
+              currentColor.r = previousTargetColor.r;
+              currentColor.g = previousTargetColor.g;
+              currentColor.b = previousTargetColor.b;
             }
             else {
-              nblendU8TowardU8(changingColor.r, toFadePalette[currentLed_m].r);
-              nblendU8TowardU8(changingColor.g, toFadePalette[currentLed_m].g);
-              nblendU8TowardU8(changingColor.b, toFadePalette[currentLed_m].b);
+              currentColor.r = currentFadePalette[i_m].r;
+              currentColor.g = currentFadePalette[i_m].g;
+              currentColor.b = currentFadePalette[i_m].b;
             }
-            changingColorArray[seq].r = changingColor.r;
+          }
+          else if (i == currentLed) {
+            nblendU8TowardU8(changingColor.r, toFadePalette[currentLed_m].r, patternTime_Array[seq]);
+            nblendU8TowardU8(changingColor.g, toFadePalette[currentLed_m].g, patternTime_Array[seq]);
+            nblendU8TowardU8(changingColor.b, toFadePalette[currentLed_m].b, patternTime_Array[seq]);
+            changingColorArray[seq].r = changingColor.r; // Armazena todas as cores atualmente variando dos patterns da sequencia atual
             changingColorArray[seq].g = changingColor.g;
             changingColorArray[seq].b = changingColor.b;
             currentColor.r = changingColor.r;
@@ -354,8 +358,8 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
             currentColor.b = changingColor.b;
           }
         }
-        else {
-            currentColor.r = currentFadePalette[i_m].r;
+        else { // If not between initial and final leds, leave without changes
+            currentColor.r = currentFadePalette[i_m].r; // Armazena os valores de todos os leds variando atualmente
             currentColor.g = currentFadePalette[i_m].g;
             currentColor.b = currentFadePalette[i_m].b;
         }
@@ -381,13 +385,13 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
         }
 
         if (redCheck_Array[seq] && greenCheck_Array[seq] && blueCheck_Array[seq] && led_2 > led_1 && currentLed != led_2) {
-          Serial.println("Led ++");
           redCheck_Array[seq] = false;
           greenCheck_Array[seq] = false;
           blueCheck_Array[seq] = false;
           fadingPalette[currentLed_m] = changingColor;
 
           currentLed++;
+          if (currentLed > NUM_LEDS-1) currentLed = NUM_LEDS-1;
           currentLed_m = map(currentLed, 0, NUM_LEDS-1, 0, 255);
           currentLed_Array[seq] = currentLed;
           currentLed_m_Array[seq] = currentLed_m;
@@ -397,33 +401,47 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
           patternChanged = false;
         }
         else if (redCheck_Array[seq] && greenCheck_Array[seq] && blueCheck_Array[seq] && led_2 < led_1 && currentLed != led_2) {
-          Serial.println("Led --");
           redCheck_Array[seq] = false;
           greenCheck_Array[seq] = false;
           blueCheck_Array[seq] = false;
           fadingPalette[currentLed_m] = changingColor;
 
           currentLed--;
+          if (currentLed < 0) currentLed = 0;
           currentLed_m = map(currentLed, 0, NUM_LEDS-1, 0, 255);
           currentLed_Array[seq] = currentLed;
           currentLed_m_Array[seq] = currentLed_m;
 
           changingColor = currentFadePalette[currentLed_m];
-          changingColorArray[seq] = changingColor; // problem
+          if(currentLed == 0) changingColor = previousTargetColor;
+          changingColorArray[seq] = changingColor;
           patternChanged = false;
         }
-        else if (changingColor == targetColor && currentLed == led_2 && !patternChanged) {
-          Serial.println("Changing palette pattern");
-          redCheck_Array[seq] = false;
-          greenCheck_Array[seq] = false;
-          blueCheck_Array[seq] = false;
+        else if (currentLed == led_2 && !patternChanged && !sameSequence && fadingPalette[led_1_m] == toFadePalette[led_1_m] && changingColor == targetColor) {
+          patternCheck_Array[seq] = true;
+          patternsChecked = patternCheck_Array[seq];
+          if (led_2 == 0) {
+            previousTargetColor = targetColor;
+            toFadePalette[led_2_m] = targetColor;
+          }
+        }
 
-          currentFadePalette = toFadePalette; // No futuro: mudar para atualizar o currentFadePalette apenas quando a última sequencia tiver sido atulizada (que pode demorar mais que outras sequencias)
-          
+        for (int seqIt = 1; seqIt <= sequencesInSet; seqIt++) {
+          patternsChecked = patternsChecked & patternCheck_Array[seqIt];
+        }
+        if (patternsChecked) {
+          currentFadePalette = toFadePalette;
+          for (int seqIt = 1; seqIt <= sequencesInSet; seqIt++) {
+            redCheck_Array[seqIt] = false;
+            greenCheck_Array[seqIt] = false;
+            blueCheck_Array[seqIt] = false;
+            patternCheck_Array[seqIt] = false;
+            currentFadePalette[led_2_m_Array[seqIt]] = targetColorArray[seqIt];
+          }
           mqtt.publish(request_topic.c_str(), "Request");
-          changeSequencePattern();
-
           patternChanged = true;
+          patternsChecked = false;
+          delay(150);
         }
 
         leds[i] = currentColor;
@@ -433,27 +451,63 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex )
 
 
 void changeSequencePattern() {
-  // real range 1-110, test range 1-30 // Starts with first led = 0
-  int sequencesInSet =  JsonConfig["Total"];
+  // real range 1-134, test range 1-30 // Starts with first led = 0
+  sequencesInSet = JsonConfig["Total"];
+  fadingPalette = currentFadePalette;
 
-  for (int seq = 1; seq <= sequencesInSet; seq++) {
-    String str_seq = String(seq);
-    led_1_Array[seq] = JsonConfig[str_seq]["L1"];
-    led_2_Array[seq] = JsonConfig[str_seq]["L2"];
-    initialColorArray[seq].r = JsonConfig[str_seq]["ICr"];
-    initialColorArray[seq].g = JsonConfig[str_seq]["ICg"];
-    initialColorArray[seq].b = JsonConfig[str_seq]["ICb"];
-    targetColorArray[seq].r = JsonConfig[str_seq]["TCr"];
-    targetColorArray[seq].g = JsonConfig[str_seq]["TCg"];
-    targetColorArray[seq].b = JsonConfig[str_seq]["TCb"];
+  for (int seq_cnt = 1; seq_cnt <= sequencesInSet; seq_cnt++) {
+    String str_seq = String(seq_cnt);
+    int new_led1_m;
 
-    led_1_m_Array[seq] = map(led_1_Array[seq], 0, NUM_LEDS-1, 0, 255);
-    led_2_m_Array[seq] = map(led_2_Array[seq], 0, NUM_LEDS-1, 0, 255);
-    currentLed_Array[seq] = led_1_Array[seq];
-    currentLed_m_Array[seq] = map(currentLed_Array[seq], 0, NUM_LEDS-1, 0, 255);
+    sameSequence = true;
+    if (!(String(led_1_Array[seq_cnt]) == JsonConfig[str_seq]["L1"] &&
+        String(led_2_Array[seq_cnt]) == JsonConfig[str_seq]["L2"] &&
+        String(patternTime_Array[seq_cnt]) == JsonConfig[str_seq]["T"] &&
+        initialColorArray[seq_cnt].r == JsonConfig[str_seq]["ICr"] &&
+        initialColorArray[seq_cnt].g == JsonConfig[str_seq]["ICg"] &&
+        initialColorArray[seq_cnt].b == JsonConfig[str_seq]["ICb"] &&
+        targetColorArray[seq_cnt].r == JsonConfig[str_seq]["TCr"] &&
+        targetColorArray[seq_cnt].g == JsonConfig[str_seq]["TCg"] &&
+        targetColorArray[seq_cnt].b == JsonConfig[str_seq]["TCb"])) { // Check whether the receiving sequence is not exactly the same as the previous received sequence
+      sameSequence = false;
 
-    if (led_2_Array[seq] > led_1_Array[seq]) setToFadePaletteForward(led_1_m_Array[seq], led_2_m_Array[seq], initialColorArray[seq], targetColorArray[seq]);
-    else setToFadePaletteBackward(led_1_m_Array[seq], led_2_m_Array[seq], initialColorArray[seq], targetColorArray[seq]);
+      new_led1_m = map(JsonConfig[str_seq]["L1"], 0, NUM_LEDS-1, 0, 255);
+      changingColorArray[seq_cnt] = toFadePalette[new_led1_m]; // Update changing color leds to initial led position of new pattern
+
+      led_1_Array[seq_cnt] = JsonConfig[str_seq]["L1"];
+      led_2_Array[seq_cnt] = JsonConfig[str_seq]["L2"];
+      patternTime_Array[seq_cnt] = JsonConfig[str_seq]["T"];
+      initialColorArray[seq_cnt].r = JsonConfig[str_seq]["ICr"];
+      initialColorArray[seq_cnt].g = JsonConfig[str_seq]["ICg"];
+      initialColorArray[seq_cnt].b = JsonConfig[str_seq]["ICb"];
+      targetColorArray[seq_cnt].r = JsonConfig[str_seq]["TCr"];
+      targetColorArray[seq_cnt].g = JsonConfig[str_seq]["TCg"];
+      targetColorArray[seq_cnt].b = JsonConfig[str_seq]["TCb"];
+  
+      led_1_m_Array[seq_cnt] = map(led_1_Array[seq_cnt], 0, NUM_LEDS-1, 0, 255);
+      led_2_m_Array[seq_cnt] = map(led_2_Array[seq_cnt], 0, NUM_LEDS-1, 0, 255);
+      currentLed_Array[seq_cnt] = JsonConfig[str_seq]["L1"];
+      currentLed_m_Array[seq_cnt] = map(currentLed_Array[seq_cnt], 0, NUM_LEDS-1, 0, 255);
+  
+      if (led_2_Array[seq_cnt] > led_1_Array[seq_cnt]) setToFadePaletteForward(led_1_m_Array[seq_cnt], led_2_m_Array[seq_cnt], initialColorArray[seq_cnt], targetColorArray[seq_cnt]);
+      else setToFadePaletteBackward(led_1_m_Array[seq_cnt], led_2_m_Array[seq_cnt], initialColorArray[seq_cnt], targetColorArray[seq_cnt]);
+    }
+  }
+
+  for (int seq_cnt = sequencesInSet + 1; seq_cnt <= MAX_PATTERNS; seq_cnt++) { // Set as zero all other patterns in sequence array
+      led_1_Array[seq_cnt] = 0;
+      led_2_Array[seq_cnt] = 0;
+      led_1_m_Array[seq_cnt] = 0;
+      led_2_m_Array[seq_cnt] = 0;
+      patternTime_Array[seq_cnt] = 0;
+      initialColorArray[seq_cnt].r = 0;
+      initialColorArray[seq_cnt].g = 0;
+      initialColorArray[seq_cnt].b = 0;
+      targetColorArray[seq_cnt].r = 0;
+      targetColorArray[seq_cnt].g = 0;
+      targetColorArray[seq_cnt].b = 0;
+      currentLed_Array[seq_cnt] = 0;
+      currentLed_m_Array[seq_cnt] = 0;
   }
 }
 
@@ -489,18 +543,17 @@ void setToFadePaletteForward(int led_1_m, int led_2_m, CRGB initialColor, CRGB t
   }
 }
 
-void nblendU8TowardU8(uint8_t &current, const uint8_t target)
-{
+void nblendU8TowardU8(uint8_t &current, const uint8_t target, int t) {
   if (current == target) return;
 
   if (current < target) {
     uint8_t delta = target - current;
-    delta = scale8_video(delta, 4); // 4, 16
+    delta = scale8_video(delta, t); // 4, 16
     current += delta;
   }
   else {
     uint8_t delta = current - target;
-    delta = scale8_video(delta, 4); // 4, 16
+    delta = scale8_video(delta, t); // 4, 16
     current -= delta;
   }
 }

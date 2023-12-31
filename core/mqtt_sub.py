@@ -109,10 +109,10 @@ def on_message(client, userdata, message):
                 rgbFrameObject = RGBFrame.objects.get(name=requester_project_name)
                 jsonDictAll = rgbFrameObject.rgb_strip
                 sequence = rgbFrameObject.current_sequence
-                jsonDict = jsonDictAll[str(sequence)]
-                # Update sequence value and save it
                 sequence += 1
                 if (sequence >= len(jsonDictAll)): sequence = 0
+                jsonDict = jsonDictAll[str(sequence)]
+                # Update sequence value and save it
                 db_query = RGBFrame.objects.get(name=requester_project_name)
                 db_query.current_sequence = sequence # number of sequence currently being transmitted
                 db_query.save()

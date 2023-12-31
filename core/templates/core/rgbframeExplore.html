@@ -79,21 +79,25 @@
                         <div class="rgbframe-strip-patterns-container">
                             {% for pattern in sequence.patterns %}
                                 <div class="rgbframe-strip-pattern-container">
-                                    <a class="rgbframe-strip-btn editpatt" role="button" onclick="">Edit</a>
+                                    <a class="rgbframe-strip-btn copypatt" role="button" hx-get="/rgbframeCopyPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Copy</a>
+                                    <a class="rgbframe-strip-btn editpatt" role="button" hx-get="/rgbframeEditPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Edit</a>
                                     <a class="rgbframe-strip-btn delpatt" role="button" hx-get="/rgbframeDelPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Delete</a>
                                     <div class="rgbframe-strip-pattern-text">LED <b>{{ pattern.L1 }}</b> to LED <b>{{ pattern.L2 }}</b> from color |</div>
                                     <div class="rgbframe-strip-pattern-color" style="background-color: rgb({{ pattern.ICr }}, {{ pattern.ICg }}, {{ pattern.ICb }});"></div>
                                     <div class="rgbframe-strip-pattern-text">| to |</div>
                                     <div class="rgbframe-strip-pattern-color" style="background-color: rgb({{ pattern.TCr }}, {{ pattern.TCg }}, {{ pattern.TCb }});"></div>
-                                    <div class="rgbframe-strip-pattern-text">| in <b>X</b> seconds</div>
+                                    <div class="rgbframe-strip-pattern-text">| in <b>{{ pattern.T }}</b> times</div>
                                 </div>
                             {% endfor %}
-                            <a class="rgbframe-strip-btn addpatt" role="button" onclick="">Add new pattern</a>
+                            <a class="rgbframe-strip-btn addpatt" role="button" hx-get="/rgbframeAddPattern{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Add</a>
+                            <a class="rgbframe-strip-btn massedit" role="button" hx-get="/rgbframeEditSequence{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Edit all</a>
+                            <a class="rgbframe-strip-btn massdel" role="button" hx-get="/rgbframeDelSequence{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Delete all</a>
                         </div>
                         {% endfor %}
                     </div>
                     <div class="rgbframe-strip-buttons">
                         <a class="rgbframe-strip-btn addsequence" role="button" hx-get="/rgbframeAddSequence{{ id }}" hx-target="#dialog">Add new sequence</a>
+                        <a class="rgbframe-strip-btn copysequence" role="button" hx-get="/rgbframeCopySequence{{ id }}" hx-target="#dialog">Copy last sequence</a>
                         <a class="rgbframe-strip-btn delsequence" role="button" onclick="">Clear sequences</a>
                     </div>
                 </div>

@@ -1,11 +1,25 @@
 <form hx-post="{{ request.path }}" class="modal-content">
     {% csrf_token %}
     <div class="modal-header">
-      <h5 class="modal-title">Add new sequence</h5>
+      {% if type == 'sequence' %}
+        <h5 class="modal-title">Add new sequence</h5>
+      {% elif type == 'pattern' %}
+        <h5 class="modal-title">Add new pattern</h5>
+      {% elif type == 'edit' %}
+        <h5 class="modal-title">Edit pattern</h5>
+      {% elif type == 'copy' %}
+        <h5 class="modal-title">Copy pattern</h5>
+      {% elif type == 'edit all' %}
+        <h5 class="modal-title">Edit all patterns</h5>
+      {% endif %}
     </div>
     <div class="modal-body">
       {{ form.as_p }}
+      {% if type == 'edit all' %}
+      <b>(Only new values will update all patterns)</b>
+      {% endif %}
     </div>
+
     <div class="modal-footer">
       <button type="button" class="btn-modal-cancel" data-dismiss="modal">Cancel</button>
       <button type="submit" class="btn-modal-submit" onclick="reload_page()">Save</button>

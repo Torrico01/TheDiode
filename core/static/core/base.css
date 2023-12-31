@@ -182,9 +182,39 @@ body {
   background-color: #95b8f9;
 }
 
-.rgbframe-strip-btn.delpatt {
+.rgbframe-strip-btn.copypatt {
+  position: relative;
+  left: 5px;
+  top: 5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(188, 199, 255);
+  /* Bg color */
+  background-color: #95b8f9;
+}
+
+.rgbframe-strip-btn.editpatt {
   position: relative;
   left: 10px;
+  top: 5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(188, 255, 195);
+  /* Bg color */
+  background-color: #95f998;
+}
+
+.rgbframe-strip-btn.delpatt {
+  position: relative;
+  left: 15px;
   top: 5px;
   padding: 1px;
   font-size: 7px;
@@ -196,6 +226,12 @@ body {
   /* Bg color */
   background-color: #f99595;
 }
+
+.rgbframe-strip-pattern-text, .rgbframe-strip-pattern-color {
+  position: relative;
+  left: 20px;
+}
+
 
 .rgbframe-strip-btn.addpatt {
   position: relative;
@@ -212,10 +248,10 @@ body {
   background-color: #95b8f9;
 }
 
-.rgbframe-strip-btn.editpatt {
+.rgbframe-strip-btn.massedit {
   position: relative;
-  top: 5px;
   left: 5px;
+  top: -5px;
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
@@ -227,25 +263,42 @@ body {
   background-color: #95f998;
 }
 
-.rgbframe-strip-btn.addrule{
+.rgbframe-strip-btn.massdel {
+  position: relative;
+  left: 5px;
+  top: -5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(255, 188, 188);
+  /* Bg color */
+  background-color: #f99595;
+}
+
+.rgbframe-strip-btn.addrule, .rgbframe-strip-btn.delrule{
   color: rgb(95, 95, 95);
+  position: relative;
 }
 .rgbframe-strip-btn.delrule{
-  color: rgb(95, 95, 95);
   border: 0.15rem outset rgb(255, 188, 188);
   background-color: #f99595;
-  position: relative;
-  left: 10px;
+  left: 7px;
 }
-.rgbframe-strip-btn.addsequence{
+
+.rgbframe-strip-btn.addsequence, .rgbframe-strip-btn.copysequence, .rgbframe-strip-btn.delsequence{
   color: rgb(95, 95, 95);
+  position: relative;
+}
+.rgbframe-strip-btn.copysequence{
+  left: 7px;
 }
 .rgbframe-strip-btn.delsequence{
-  color: rgb(95, 95, 95);
   border: 0.15rem outset rgb(255, 188, 188);
   background-color: #f99595;
-  position: relative;
-  left: 10px;
+  left: 14px;
 }
 
 

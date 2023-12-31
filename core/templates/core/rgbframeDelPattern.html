@@ -1,10 +1,22 @@
 <form hx-post="{{ request.path }}" class="modal-content">
     {% csrf_token %}
     <div class="modal-header">
-      <h5 class="modal-title">Delete pattern?</h5>
+      {% if type == 'del' %}
+        <h5 class="modal-title">Delete pattern?</h5>
+      {% elif type == 'copy' %}
+        <h5 class="modal-title">Copy last sequence?</h5>
+      {% elif type == 'del seq' %}
+        <h5 class="modal-title">Delete sequence?</h5>
+      {% endif %}
     </div>
     <div class="modal-body">
       <button type="button" data-dismiss="modal" class="btn-modal-cancel" style="background-color: rgb(186, 186, 186);">No</button>
-      <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
+      {% if type == 'del' %}
+        <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
+      {% elif type == 'del seq' %}
+        <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
+      {% elif type == 'copy' %}
+        <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(176, 255, 175);">Yes</button>
+      {% endif %}
     </div>
   </form>

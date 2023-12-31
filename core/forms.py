@@ -68,9 +68,17 @@ class CriarPainelForm(ModelForm):
                   'slot_8',
                   'slot_9',]
         
-class RGBFrameAddSequenceForm(forms.Form):
+class RGBFrameAddSequenceForm(forms.Form): # Used for editing, copying and adding
     L1 = forms.IntegerField(label="Initial LED")
     L2 = forms.IntegerField(label="Final LED")
+    T = forms.IntegerField(label="Time")
+    Color1 = forms.CharField(label='Initial Color', max_length=7,
+        widget=forms.TextInput(attrs={'type': 'color'}))
+    Color2 = forms.CharField(label='Final Color', max_length=7,
+        widget=forms.TextInput(attrs={'type': 'color'}))
+    
+class RGBFrameEditSequenceForm(forms.Form): # Used for mass editing
+    T = forms.IntegerField(label="Time")
     Color1 = forms.CharField(label='Initial Color', max_length=7,
         widget=forms.TextInput(attrs={'type': 'color'}))
     Color2 = forms.CharField(label='Final Color', max_length=7,
