@@ -1,6 +1,12 @@
 # TheDiode
-## 1. Setting up the server
+## 0. Running localy
+> (Install python)
+> Install/start virtual environment: python -m venv venv
+> (Windows, cmd) Run virtual environment: venv\Scripts\activate.bat
+> Install requirements: pip install -r requirements.txt
 
+
+## 1. Setting up the server
 
 ### Configuring the OS of the Raspberry
 > **_TO DO:_** Download Raspberry Imager
