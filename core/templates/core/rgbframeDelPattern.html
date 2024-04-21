@@ -7,6 +7,8 @@
         <h5 class="modal-title">Copy last sequence?</h5>
       {% elif type == 'del seq' %}
         <h5 class="modal-title">Delete sequence?</h5>
+      {% elif type == 'del seqpatt' %}
+        <h5 class="modal-title">Delete sequence pattern?</h5>
       {% endif %}
     </div>
     <div class="modal-body">
@@ -14,6 +16,8 @@
       {% if type == 'del' %}
         <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
       {% elif type == 'del seq' %}
+        <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
+      {% elif type == 'del seqpatt' %}
         <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(255, 175, 175);">Yes</button>
       {% elif type == 'copy' %}
         <button type="submit" class="btn-modal-submit" onclick="reload_page()" style="background-color: rgb(176, 255, 175);">Yes</button>

@@ -1,0 +1,118 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %} Painel de Armazenamento Modular {% endblock %}
+
+{% block content %}
+
+<style>
+    .categorias {
+      display: inline-block;
+      padding: 15px 25px;
+      font-size: 24px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      outline: none;
+      color: #fff;
+      background-color: #4cafaa;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 3px #999;
+    }
+    
+    .categorias:hover {background-color: #3e7e8e}
+    
+    .categorias:active {
+      background-color: #3e718e;
+      box-shadow: 0 5px #666;
+      transform: translateY(4px);
+    }
+
+</style>
+
+<nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
+    <div class="btnWithSliderEffect" role="home">
+    <a class="navbar-brand" onclick="changePage('/')" role="button">The Diode</a>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li>
+                <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<main role="main">
+
+    <div class="fromRight">
+      <div class="project-head" style="height: 275px;">
+        <div id="project-title" class="project-title">
+          <div class="cool-title" contenteditable data-heading="Cyan Converter">Cyan Converter</div>
+        </div>
+      </div>
+      <div id="project-content">
+        <div id="carousel" class="carousel">
+
+          <div id='item_1' class="hideLeft">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_2' class="prevLeftSecond">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_3' class="prev">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_4' class="selected">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_5' class="next">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_6' class="nextRightSecond">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_7' class="hideRight">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+          <div id='item_8' class="hideRight">
+            <img src="/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg">
+          </div>
+    
+        </div>
+        <div class="buttons">
+            <button class="button-82-pushable" role="button" id="prev"><span class="button-82-shadow"></span><span class="button-82-edge"></span><span class="button-82-front text">Previous</span></button>
+            <button class="button-82-pushable" role="button" id="next"><span class="button-82-shadow"></span><span class="button-82-edge"></span><span class="button-82-front text">Next</span></button>
+        </div>
+        <div class="project-texts">
+          <button class="project-collapse-button">Review</button>
+          <div class="project-collapse-content">
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse nulla ut officiis molestias porro obcaecati cupiditate reiciendis fugiat pariatur, sapiente sequi odio molestiae, dicta maiores tenetur ducimus consequuntur rerum! Reprehenderit!</p>
+          </div>
+          <button class="project-collapse-button">Parts</button>
+          <div class="project-collapse-content">
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse nulla ut officiis molestias porro obcaecati cupiditate reiciendis fugiat pariatur, sapiente sequi odio molestiae, dicta maiores tenetur ducimus consequuntur rerum! Reprehenderit!</p>
+          </div>
+          <button class="project-collapse-button">Construction</button>
+          <div class="project-collapse-content">
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Esse nulla ut officiis molestias porro obcaecati cupiditate reiciendis fugiat pariatur, sapiente sequi odio molestiae, dicta maiores tenetur ducimus consequuntur rerum! Reprehenderit!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</main>
+{% endblock %}

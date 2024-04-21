@@ -1,0 +1,7 @@
+2x Soquete 28 pinos -> Comprar 5x Soquetes 28 pinos + 1x de seg       = 6x Soquete estampado 28 pinos
+6x Encaixes de fios painel -> Comprar 8x Encaixes de fios + 2x de seg = 10x Encaixes de fio ----> (CHECK)
+28x RGB CC -> Comprar 35x RGB CC + 9x de seg                          = 44x RGB CC
+1x Fio macho painel -> Comprar 14x pares de fio 4 pinos + 2x de seg   = 16x pares de fio ----> (CHECK)
+
+Barra femea grande
+Componentes para fazer modulo de armazenamento

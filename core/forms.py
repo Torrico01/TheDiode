@@ -3,6 +3,7 @@ from django.forms.widgets import TextInput
 from django import forms
 from components.models import *
 from projects.models import *
+from storage.models import *
 
 class CriarCategoriaForm(ModelForm):
     def __init__(self,*args,**kwargs): # populates the post
@@ -83,3 +84,18 @@ class RGBFrameEditSequenceForm(forms.Form): # Used for mass editing
         widget=forms.TextInput(attrs={'type': 'color'}))
     Color2 = forms.CharField(label='Final Color', max_length=7,
         widget=forms.TextInput(attrs={'type': 'color'}))
+
+class RGBFrameAddSeqPattForm(forms.Form): # Used to edit and add new sequence pattern to the rgb strip sequence    
+    all_framesequences = RGBFrameSequences.objects.all()
+    for obj in all_framesequences:
+        obj.refresh_from_db()
+    names_array = list(all_framesequences.values_list('name', flat=True))
+    choices_array = []
+    for name in names_array:
+        choices_array.append((name, name))
+    name = forms.CharField(label='Name', widget=forms.Select(choices=choices_array))
+    times = forms.IntegerField(label="Times", initial=1)
+    speed = forms.IntegerField(label="Speed", initial=1)
+
+class RGBFrameCreateSeqPattForm(forms.Form): # Used to create a new sequence pattern
+    name = forms.CharField(label="Name", max_length=100)

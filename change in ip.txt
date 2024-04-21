@@ -1,0 +1,29 @@
+open cmd -> ipconfig -> get ip
+
+core\config_variables.py -> update broker ip
+C:\Program Files\mosquitto\mosquitto.conf ->  update listener ip (line 232)
+launch.bat -> update start server
+esp8266.ino -> server name ip
+esp8266.ino -> upate broker ip
+
+
+=================
+Other utilites:
+
+Publish in topic:
+cd C:\Program Files\mosquitto
+mosquitto_pub -h 192.168.15.16 -t "ModularStoragePanelBase/Painel Base 1/Module/1" -m 2
+mosquitto_pub -h 192.168.15.16 -t "ModularStoragePanel/Capacitor Eletrolitico 1/Outputs/Display/1" -m 3
+mosquitto_pub -h 192.168.15.16 -t "ModularStoragePanel/Capacitor Eletrolitico 1/Configuration/1" -m "{}"
+mosquitto_pub -h 192.168.15.16 -t "Communication/Connection/2" -m ON
+mosquitto_sub -h 192.168.15.16 -p "1883" -t "teste/json"
+
+mosquitto_pub -h "pro-absolute-gazelle.ngrok-free.app" -p 1883 -t "testTopic" -m 2
+tcp://0.tcp.sa.ngrok.io:13137
+
+
+Migrate in server:
+python manage.py makemigrations
+python manage.py migrate
+
+Caso o makemigrations não esteja funcionando, verificar se existem as pastas 'migrations' e limpar os arquivos delas deixando o init

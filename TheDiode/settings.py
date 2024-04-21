@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'core',
     'components',
     'projects',
+    'storage',
+    'compressor',
 
     'django.contrib.admin',
     'django.contrib.auth',
