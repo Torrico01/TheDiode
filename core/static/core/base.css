@@ -1,9 +1,20 @@
+/***************** Loading Fonts *****************/
 @font-face {
   font-family: "FeelfreePersonalUseRegular-lg2Bw";
   src: url("fonts/FeelfreePersonalUseRegular-lg2Bw.ttf") format("truetype");
 }
+@font-face {
+  font-family: "CoreCircus2DIn";
+  src: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BFA_1_0.eot");
+  src: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BFA_1_0.eot?#iefix") format("embedded-opentype"), url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BFA_1_0.woff2") format("woff2"), url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BFA_1_0.woff") format("woff"), url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BFA_1_0.ttf") format("truetype");
+}
+@font-face {
+  font-family: "CoreCircus";
+  src: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BF4_8_0.eot");
+  src: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BF4_8_0.eot?#iefix") format("embedded-opentype"), url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BF4_8_0.woff2") format("woff2"), url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BF4_8_0.woff") format("woff"), url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/209981/333BF4_8_0.ttf") format("truetype");
+}
 
-
+/***************** Main Elements *****************/
 body {
   overflow-x: hidden;
   overflow-y: scroll;
@@ -12,6 +23,7 @@ body {
 .fromLeft {
   opacity: 0%;
 }
+
 .fromRight {
   opacity: 0%;
 }
@@ -32,7 +44,9 @@ body {
   box-shadow: 0 3px #999;
 }
 
-.categorias:hover {background-color: #3e8e41}
+.categorias:hover {
+  background-color: #3e8e41;
+}
 
 .categorias:active {
   background-color: #3e8e41;
@@ -41,7 +55,7 @@ body {
 }
 
 /***************** RGB Frame *****************/
-.rgbframe-main-container{
+.rgbframe-main-container {
   padding-top: 75px;
   padding-left: 25px;
   padding-right: 25px;
@@ -49,11 +63,11 @@ body {
   border-color: #000000;
 }
 
-.rgbframe-main-project-container{
+.rgbframe-main-project-container {
   display: flex;
 }
 
-.rgbframe-main-project-name{
+.rgbframe-main-project-name {
   color: white;
   font-weight: 700;
   background-color: #95b8f9;
@@ -64,7 +78,7 @@ body {
   border-radius: 0.2rem;
 }
 
-.rgbframe-main-btn{
+.rgbframe-main-btn {
   position: relative;
   left: 15px;
   padding-top: 2px;
@@ -73,7 +87,6 @@ body {
   padding-bottom: 2px;
   font-size: 15px;
   font-weight: 100;
-
   /* Middle border */
   border: 0.15rem outset rgb(188, 199, 255);
   border-radius: 0.2rem;
@@ -97,14 +110,14 @@ body {
   display: flex;
 }
 
-.rgbframe-strip-info-container{
+.rgbframe-strip-info-container {
   width: 70%;
   height: 100%;
   background-color: #a4cdd6;
   border: 0.2rem solid rgb(0, 0, 0);
 }
 
-.rgbframe-strip-rulesequence-container{
+.rgbframe-strip-rulesequence-container {
   width: 100%;
 }
 
@@ -128,9 +141,22 @@ body {
   height: 50%;
 }
 
+.rgbframe-strip-sequencepatterngroup-container {
+  position: relative;
+  background-color: #a4cdd6;
+  border: 0.2rem solid rgb(0, 0, 0);
+  height: 100%;
+}
+
 .rgbframe-strip-sequences-container {
   background-color: #b0dce6;
   height: 77%;
+  overflow: auto;
+}
+
+.rgbframe-strip-sequencepatterns-container {
+  background-color: #b0dce6;
+  height: 88.5%;
   overflow: auto;
 }
 
@@ -144,12 +170,27 @@ body {
   display: flex;
 }
 
-.rgbframe-strip-pattern-text{
+.rgbframe-strip-sequencepatternitem-container {
+  border: 0rem solid rgb(0, 0, 0);
+}
+
+.rgbframe-strip-sequencepattern-container {
+  border-radius: 0%;
+  padding-right: 10px;
+  display: flex;
+}
+
+.rgbframe-strip-pattern-text {
   position: relative;
   left: 15px;
 }
 
-.rgbframe-strip-pattern-color{
+.rgbframe-strip-sequencepattern-text {
+  position: relative;
+  left: 15px;
+}
+
+.rgbframe-strip-pattern-color {
   position: relative;
   top: 5px;
   left: 15px;
@@ -172,7 +213,6 @@ body {
   padding-bottom: 2px;
   font-size: 15px;
   font-weight: 100;
-
   /* Middle border */
   border: 0.15rem outset rgb(188, 199, 255);
   border-radius: 0.2rem;
@@ -182,6 +222,17 @@ body {
   background-color: #95b8f9;
 }
 
+.rgbframe-strip-btn.addrule, .rgbframe-strip-btn.delrule {
+  color: rgb(95, 95, 95);
+  position: relative;
+}
+
+.rgbframe-strip-btn.delrule {
+  border: 0.15rem outset rgb(255, 188, 188);
+  background-color: #f99595;
+  left: 7px;
+}
+
 .rgbframe-strip-btn.copypatt {
   position: relative;
   left: 5px;
@@ -189,7 +240,6 @@ body {
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
-
   height: 100%;
   /* Middle border */
   border: 0.05rem outset rgb(188, 199, 255);
@@ -204,7 +254,6 @@ body {
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
-
   height: 100%;
   /* Middle border */
   border: 0.05rem outset rgb(188, 255, 195);
@@ -219,7 +268,6 @@ body {
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
-
   height: 100%;
   /* Middle border */
   border: 0.05rem outset rgb(255, 188, 188);
@@ -232,7 +280,6 @@ body {
   left: 20px;
 }
 
-
 .rgbframe-strip-btn.addpatt {
   position: relative;
   left: 5px;
@@ -240,7 +287,6 @@ body {
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
-
   height: 100%;
   /* Middle border */
   border: 0.05rem outset rgb(188, 199, 255);
@@ -255,7 +301,6 @@ body {
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
-
   height: 100%;
   /* Middle border */
   border: 0.05rem outset rgb(188, 255, 195);
@@ -270,7 +315,6 @@ body {
   padding: 1px;
   font-size: 7px;
   font-weight: 600;
-
   height: 100%;
   /* Middle border */
   border: 0.05rem outset rgb(255, 188, 188);
@@ -278,31 +322,68 @@ body {
   background-color: #f99595;
 }
 
-.rgbframe-strip-btn.addrule, .rgbframe-strip-btn.delrule{
+.rgbframe-strip-btn.addsequence, .rgbframe-strip-btn.copysequence, .rgbframe-strip-btn.delsequence {
   color: rgb(95, 95, 95);
   position: relative;
 }
-.rgbframe-strip-btn.delrule{
-  border: 0.15rem outset rgb(255, 188, 188);
-  background-color: #f99595;
+
+.rgbframe-strip-btn.copysequence {
   left: 7px;
 }
 
-.rgbframe-strip-btn.addsequence, .rgbframe-strip-btn.copysequence, .rgbframe-strip-btn.delsequence{
-  color: rgb(95, 95, 95);
-  position: relative;
-}
-.rgbframe-strip-btn.copysequence{
-  left: 7px;
-}
-.rgbframe-strip-btn.delsequence{
+.rgbframe-strip-btn.delsequence {
   border: 0.15rem outset rgb(255, 188, 188);
   background-color: #f99595;
   left: 14px;
 }
 
+.rgbframe-strip-btn.addseqpatt, .rgbframe-strip-btn.createseqpatt {
+  color: rgb(95, 95, 95);
+  position: relative;
+}
+
+.rgbframe-strip-btn.createseqpatt {
+  left: 7px;
+  background-color: #95f998;
+}
+
+.rgbframe-strip-btn.editseqpatt {
+  position: relative;
+  left: 5px;
+  top: 5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(188, 255, 195);
+  /* Bg color */
+  background-color: #95f998;
+}
+
+.rgbframe-strip-btn.delseqpatt {
+  position: relative;
+  left: 10px;
+  top: 5px;
+  padding: 1px;
+  font-size: 7px;
+  font-weight: 600;
+  height: 100%;
+  /* Middle border */
+  border: 0.05rem outset rgb(255, 188, 188);
+  /* Bg color */
+  background-color: #f99595;
+}
 
 /***************** Project card window *****************/
+.tech-description {
+  color: black;
+}
+
+.full-description {
+  color: red;
+}
+
 .card-container {
   display: flex;
   width: 100%;
@@ -317,8 +398,7 @@ body {
   height: auto;
   width: 1102px;
   grid-template-columns: repeat(9, 1fr);
-  grid-gap: 3rem;
-  margin: 1rem 5rem 4rem 5rem;
+  grid-gap: 1rem;
 }
 
 .card {
@@ -326,15 +406,14 @@ body {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: end;
   align-items: center;
   grid-column: span 3;
   font-size: 1.4rem;
-  padding: 2rem;
-  gap: 2rem;
+  padding: 0rem;
+  gap: 0rem;
   position: relative;
   /*transform:  translateY(0%);*/
-
   /* Middle border */
   border: 0.4rem outset rgb(214, 214, 214);
   border-radius: 1.5rem;
@@ -344,8 +423,46 @@ body {
   background-color: rgb(150, 165, 247);
 }
 
+.card-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.card-bg.Cyan.Converter, .card-img.Cyan.Converter {
+  background-image: url("/static/core/imagens/cyanConverter/IMG_20190515_175959.jpg");
+}
+
+.card-img {
+  position: relative;
+  width: 100%;
+  height: 70%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border: 0.1rem solid rgb(56, 117, 152);
+}
+
+.card.active .card-bg {
+  display: none;
+}
+
+.card-name {
+  font-weight: 500;
+  color: rgb(255, 255, 255);
+  z-index: 1;
+  -webkit-text-stroke: 1px rgb(76, 76, 76);
+}
+
+.card.active .card-name {
+  justify-content: end;
+}
+
 .card.expanded {
-  border: 9px solid rgb(39,39,39);
+  border: 9px solid rgb(39, 39, 39);
   background: #ffffff;
   /*transform:  translateY(-6px);*/
 }
@@ -361,10 +478,13 @@ body {
 
 .card.active {
   cursor: default;
-  grid-column: 1 / span 9;
-  grid-row: 1 / span 9;
+  grid-column: 1/span 9;
+  grid-row: 1/span 27;
   order: 0;
-  height: auto;
+  height: 500px;
+  justify-content: start;
+  align-items: center;
+  padding: 1rem;
 }
 
 .card.is-inactive {
@@ -383,9 +503,9 @@ body {
 
 .grid-home-btn {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: auto;
-  grid-gap: 2rem;
+  grid-template-columns: 2fr 2fr;
+  grid-template-rows: 450px;
+  grid-gap: 1rem;
 }
 
 .section-title {
@@ -408,12 +528,8 @@ body {
   width: 1102px;
   padding: 10px;
   margin-top: 15px;
-
   /* Inner border */
-  background: linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
-  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
-  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
-  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
+  background: linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem), linear-gradient(to left, #000000 0.25rem, transparent 0.1rem), linear-gradient(to right, #000000 0.025rem, transparent 0.1rem); /* left border */
   /* Middle border */
   border: 0.7rem outset rgb(214, 214, 214);
   border-radius: 1.5rem;
@@ -435,7 +551,6 @@ body {
   font-size: 0.8em;
   text-align: center;
   transform: scale(1);
-
   /* Middle border */
   border: 0.2rem outset rgb(255, 255, 255);
   border-radius: 0.25rem;
@@ -454,109 +569,22 @@ body {
   height: 502px;
   width: 1102px;
   padding: 1px;
-
   /* Inner border */
-  background: linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
-  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
-  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
-  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
+  background: linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem), linear-gradient(to left, #000000 0.25rem, transparent 0.1rem), linear-gradient(to right, #000000 0.025rem, transparent 0.1rem); /* left border */
   /* Middle border */
   border: 0.7rem outset rgb(214, 214, 214);
   border-radius: 1.5rem;
   /* Outer border */
   outline: 0.05rem solid rgb(0, 0, 0);
-
-  background:
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 50px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 100px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 150px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 200px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 250px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 300px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 350px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 400px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 450px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 500px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 550px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 600px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 650px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 700px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 750px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 800px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 850px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 900px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 950px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 1000px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 1050px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 1100px 0px / 2px 100%,
-
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 0px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 50px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 100px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 150px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 200px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 250px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 300px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 350px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 400px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 450px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 0),rgba(204, 204, 204, 0)) 0px 500px / 100% 2px,
-
-  linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
-  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
-  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
-  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
-
+  background: linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 50px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 100px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 150px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 200px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 250px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 300px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 350px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 400px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 450px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 500px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 550px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 600px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 650px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 700px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 750px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 800px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 850px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 900px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 950px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 1000px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 1050px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 1100px 0px/2px 100%, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 0px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 50px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 100px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 150px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 200px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 250px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 300px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 350px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 400px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 450px/100% 2px, linear-gradient(rgba(204, 204, 204, 0), rgba(204, 204, 204, 0)) 0px 500px/100% 2px, linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem), linear-gradient(to left, #000000 0.25rem, transparent 0.1rem), linear-gradient(to right, #000000 0.025rem, transparent 0.1rem); /* left border */
   background-color: rgb(221, 230, 195);
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
 }
 
 .interface-grid-container.active {
-  background:
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 50px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 100px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 150px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 200px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 250px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 300px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 350px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 400px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 450px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 500px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 550px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 600px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 650px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 700px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 750px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 800px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 850px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 900px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 950px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 1000px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 1050px 0px / 2px 100%,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 1100px 0px / 2px 100%,
-
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 0px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 50px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 100px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 150px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 200px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 250px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 300px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 350px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 400px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 450px / 100% 2px,
-  linear-gradient(rgba(204, 204, 204, 1),rgba(204, 204, 204, 1)) 0px 500px / 100% 2px,
-
-  linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), /* bottom border */
-  linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem),  /* top border */
-  linear-gradient(to left, #000000 0.25rem, transparent 0.1rem),  /* right border */
-  linear-gradient(to right, #000000 0.025rem, transparent 0.1rem);  /* left border */
-
+  background: linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 50px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 100px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 150px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 200px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 250px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 300px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 350px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 400px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 450px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 500px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 550px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 600px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 650px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 700px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 750px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 800px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 850px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 900px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 950px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 1000px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 1050px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 1100px 0px/2px 100%, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 0px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 50px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 100px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 150px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 200px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 250px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 300px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 350px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 400px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 450px/100% 2px, linear-gradient(rgb(204, 204, 204), rgb(204, 204, 204)) 0px 500px/100% 2px, linear-gradient(to top, #000000 0.25rem, transparent 0.1rem), linear-gradient(to bottom, #000000 0.025rem, transparent 0.1rem), linear-gradient(to left, #000000 0.25rem, transparent 0.1rem), linear-gradient(to right, #000000 0.025rem, transparent 0.1rem); /* left border */
   background-color: rgb(221, 230, 195);
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
 }
 
 .interface-grid { /* 10 x 22 */
@@ -573,7 +601,6 @@ body {
   word-break: break-word;
   text-align: center;
   transform: scale(1);
-
   /* Middle border */
   border: 0.2rem outset rgb(255, 255, 255);
   border-radius: 0.25rem;
@@ -610,12 +637,12 @@ body {
 
 .item-menu-baloon.active {
   opacity: 100%;
-  transform: scale(1.25) translate(0, 80%);  
+  transform: scale(1.25) translate(0, 80%);
 }
 
 .line-menu-baloon.active {
   opacity: 100%;
-  transform: scale(1.25) translate(0, 80%);  
+  transform: scale(1.25) translate(0, 80%);
 }
 
 .item-menu {
@@ -696,4 +723,275 @@ body {
 #connectionCanvas {
   position: absolute;
   padding-bottom: 163px;
+}
+
+/***************** Project Page *****************/
+#project-content {
+  position: relative;
+  justify-content: center;
+}
+
+/***** Title *****/
+.project-head{
+  position: relative;
+  background-color: #a4cdd6;
+  height: 000px; /*From html*/
+}
+
+#project-title {
+  position: relative;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  top: 150px;
+}
+.cool-title {
+  font-family: "CoreCircus", sans-serif;
+  text-transform: uppercase;
+  font-size: 5vw;
+  text-align: center;
+  line-height: 1;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  color: #61c0c8;
+  text-shadow: 1px 0px 0px #67c2c5, 0px 1px 0px #67c2c5, 2px 1px 0px #67c2c5,
+  1px 2px 0px #67c2c5, 3px 2px 0px #67c2c5, 2px 3px 0px #67c2c5,
+  4px 3px 0px #67c2c5, 3px 4px 0px #67c2c5, 5px 4px 0px #67c2c5,
+  4px 5px 0px #67c2c5, 6px 5px 0px #67c2c5, 5px 6px 0px #67c2c5,
+  7px 6px 0px #67c2c5, 6px 7px 0px #67c2c5, 8px 7px 0px #aff1f9,
+  7px 8px 0px #aff1f9, 9px 8px 0px #aff1f9, 8px 9px 0px #aff1f9,
+  10px 9px 0px #aff1f9, 9px 10px 0px #aff1f9, 11px 10px 0px #aff1f9,
+  10px 11px 0px #aff1f9;
+}
+.cool-title:before, .cool-title:after {
+  content: attr(data-heading);
+  position: absolute;
+  overflow: hidden;
+  left: 0;
+  top: 0;
+}
+.cool-title:before {
+  color: white;
+  width: 100%;
+  z-index: 5;
+  font-family: "CoreCircus2DIn";
+  font-weight: normal;
+}
+.cool-title:after {
+  z-index: -1;
+  text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white, -3px 3px 2px #6c9d9e, -5px 5px 2px #6c9d9e, -7px 7px 2px #6c9d9e, -8px 8px 2px #6c9d9e, -9px 9px 2px #6c9d9e, -11px 11px 2px #6c9d9e;
+}
+
+/***** Project Texts *****/
+.project-texts {
+  position: relative;
+  top: 350px;
+  padding-top: 25px;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-bottom: 25px;
+
+  display: flex;
+  list-style: none;
+	flex-wrap: wrap;
+
+  height: 200px;
+}
+.project-collapse-content {
+  display: none;
+  overflow: hidden;
+}
+.project-collapse-button {
+  width: 100%;
+}
+
+/***** Image Carousel *****/
+#carousel {
+  position: relative;
+  top: 25px;
+}
+
+#carousel div {
+  position: absolute;
+  transition: transform 400ms, left 400ms, opacity 400ms, z-index 0s;
+  opacity: 1;
+}
+
+#carousel div img {
+  width: 400px;
+  transition: width 400ms;
+  -webkit-user-drag: none;
+  box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
+  border-radius: 10px;
+}
+
+#carousel div.hideLeft {
+  left: 0%;
+  opacity: 0;
+  transform: translateY(50%) translateX(-50%);
+}
+
+#carousel div.hideLeft img {
+  width: 200px;
+}
+
+#carousel div.hideRight {
+  left: 100%;
+  opacity: 0;
+  transform: translateY(50%) translateX(-50%);
+}
+
+#carousel div.hideRight img {
+  width: 200px;
+}
+
+#carousel div.prev {
+  z-index: 5;
+  left: 30%;
+  transform: translateY(50px) translateX(-50%);
+}
+
+#carousel img:hover {
+  cursor: 0;
+}
+
+#carousel div.prev img {
+  width: 300px;
+}
+
+#carousel div.prevLeftSecond {
+  z-index: 4;
+  left: 15%;
+  transform: translateY(50%) translateX(-50%);
+  opacity: 0.7;
+}
+
+#carousel div.prevLeftSecond img {
+  width: 200px;
+}
+
+#carousel div.selected {
+  z-index: 10;
+  left: 50%;
+  transform: translateY(0px) translateX(-50%);
+}
+
+#carousel div.next {
+  z-index: 5;
+  left: 70%;
+  transform: translateY(50px) translateX(-50%);
+}
+
+#carousel div.next img {
+  width: 300px;
+}
+
+#carousel div.nextRightSecond {
+  z-index: 4;
+  left: 85%;
+  transform: translateY(50%) translateX(-50%);
+  opacity: 0.7;
+}
+
+#carousel div.nextRightSecond img {
+  width: 200px;
+}
+
+/*previous or next buttons css*/
+.buttons {
+  position: relative;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 5px;
+  align-items: center;
+  top: 325px;
+}
+
+.button-82-pushable {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  outline-offset: 4px;
+  transition: filter 250ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-82-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: hsla(0, 0%, 0%, 0.25);
+  will-change: transform;
+  transform: translateY(2px);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+.button-82-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(to left, hsl(340, 100%, 16%) 0%, hsl(340, 100%, 32%) 8%, hsl(340, 100%, 32%) 92%, hsl(340, 100%, 16%) 100%);
+}
+
+.button-82-front {
+  display: block;
+  position: relative;
+  padding: 12px 27px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  color: white;
+  background: hsl(345, 100%, 47%);
+  will-change: transform;
+  transform: translateY(-4px);
+  transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+@media (min-width: 768px) {
+  .button-82-front {
+    font-size: 1.25rem;
+    padding: 12px 42px;
+  }
+}
+.button-82-pushable:hover {
+  filter: brightness(110%);
+  -webkit-filter: brightness(110%);
+}
+
+.button-82-pushable:hover .button-82-front {
+  transform: translateY(-6px);
+  transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+}
+
+.button-82-pushable:active .button-82-front {
+  transform: translateY(-2px);
+  transition: transform 34ms;
+}
+
+.button-82-pushable:hover .button-82-shadow {
+  transform: translateY(4px);
+  transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+}
+
+.button-82-pushable:active .button-82-shadow {
+  transform: translateY(1px);
+  transition: transform 34ms;
+}
+
+.button-82-pushable:focus:not(:focus-visible) {
+  outline: none;
 }

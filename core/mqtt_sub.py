@@ -12,6 +12,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TheDiode.settings')
 django.setup()
 from projects.models import *
 from components.models import *
+from storage.models import *
 
 def get_processes_running():
     tasks = subprocess.check_output(['tasklist'])
@@ -107,19 +108,33 @@ def on_message(client, userdata, message):
             if (requester_project_name and message.payload.decode("utf-8") == "Request"):
                 # Get RGB frame json configuration
                 rgbFrameObject = RGBFrame.objects.get(name=requester_project_name)
+                seqpatt = rgbFrameObject.current_sequences
                 jsonDictAll = rgbFrameObject.rgb_strip
-                sequence = rgbFrameObject.current_sequence
+                seqPattJson = jsonDictAll[str(seqpatt)]
+                seqpatt_id = seqPattJson['id']
+                # Get RGB frame sequence json configuration
+                rgbFrameSeqObject = RGBFrameSequences.objects.get(id=seqpatt_id)
+                sequence = rgbFrameSeqObject.current_sequence
+                jsonSeqPatt = rgbFrameSeqObject.rgb_strip
                 sequence += 1
-                if (sequence >= len(jsonDictAll)): sequence = 0
-                jsonDict = jsonDictAll[str(sequence)]
-                # Update sequence value and save it
-                db_query = RGBFrame.objects.get(name=requester_project_name)
-                db_query.current_sequence = sequence # number of sequence currently being transmitted
-                db_query.save()
+                if (sequence >= len(jsonSeqPatt)):
+                    sequence = 0
+                    seqpatt += 1
+                    if (seqpatt >= len(jsonDictAll)): seqpatt = 0
+                # Update seqpatt value and save it
+                db_query_frame = RGBFrame.objects.get(name=requester_project_name)
+                db_query_seqpatt = RGBFrameSequences.objects.get(id=seqpatt_id)
+                db_query_frame.current_sequences = seqpatt # number of sequence currently being transmitted
+                db_query_frame.save()
+                db_query_seqpatt.current_sequence = sequence
+                db_query_seqpatt.save()
                 # Send to project
-                jsonToSend = json.dumps(jsonDict)
+                jsonSequence = jsonSeqPatt[str(sequence)]
+                if (jsonSequence["Type"] == 1):
+                    if ("Twinkle" in rgbFrameSeqObject.name):
+                        jsonSequence["Name"] = "twinkle"
+                jsonToSend = json.dumps(jsonSequence)
                 client.publish(RGB_FRAME_TOPIC.project + "/" + requested_project_name + "/" + RGB_FRAME_TOPIC.outRGBStrip + "/1", jsonToSend)
-
 
 
 def on_publish(client, userdata, mid):
@@ -160,7 +175,7 @@ def main():
     for p in processes:
         if "python" in p["image"]:
             python_process+=1
-    if python_process <= 4:
+    if python_process <= 5:
         # Start MQTT Broker (Mosquitto) and server subscription
         print("Calling server subscriber main loop")
         time.sleep(3)

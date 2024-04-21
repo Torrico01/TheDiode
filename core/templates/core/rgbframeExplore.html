@@ -76,29 +76,21 @@
                 <div class="rgbframe-strip-sequencegroup-container">
                     <div class="rgbframe-strip-sequences-container">
                         {% for sequence in sequences %}
-                        <div class="rgbframe-strip-patterns-container">
-                            {% for pattern in sequence.patterns %}
-                                <div class="rgbframe-strip-pattern-container">
-                                    <a class="rgbframe-strip-btn copypatt" role="button" hx-get="/rgbframeCopyPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Copy</a>
-                                    <a class="rgbframe-strip-btn editpatt" role="button" hx-get="/rgbframeEditPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Edit</a>
-                                    <a class="rgbframe-strip-btn delpatt" role="button" hx-get="/rgbframeDelPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Delete</a>
-                                    <div class="rgbframe-strip-pattern-text">LED <b>{{ pattern.L1 }}</b> to LED <b>{{ pattern.L2 }}</b> from color |</div>
-                                    <div class="rgbframe-strip-pattern-color" style="background-color: rgb({{ pattern.ICr }}, {{ pattern.ICg }}, {{ pattern.ICb }});"></div>
-                                    <div class="rgbframe-strip-pattern-text">| to |</div>
-                                    <div class="rgbframe-strip-pattern-color" style="background-color: rgb({{ pattern.TCr }}, {{ pattern.TCg }}, {{ pattern.TCb }});"></div>
-                                    <div class="rgbframe-strip-pattern-text">| in <b>{{ pattern.T }}</b> times</div>
-                                </div>
-                            {% endfor %}
-                            <a class="rgbframe-strip-btn addpatt" role="button" hx-get="/rgbframeAddPattern{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Add</a>
-                            <a class="rgbframe-strip-btn massedit" role="button" hx-get="/rgbframeEditSequence{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Edit all</a>
-                            <a class="rgbframe-strip-btn massdel" role="button" hx-get="/rgbframeDelSequence{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Delete all</a>
+                        <div class="rgbframe-strip-sequencepatternitem-container">
+                            <div class="rgbframe-strip-sequencepattern-container">
+                                <a class="rgbframe-strip-btn editseqpatt" role="button" hx-get="/rgbframeEditSeqPatt{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Edit</a>
+                                <a class="rgbframe-strip-btn delseqpatt" role="button" hx-get="/rgbframeDelSeqPatt{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Delete</a>
+                                <div class="rgbframe-strip-sequencepattern-text">Sequence pattern&nbsp;</div>
+                                <div class="btnWithSliderEffect"><b><a class="rgbframe-strip-sequencepattern-text" role="button" onclick="changePage('/rgbframe/explore{{ id }}/sequencepattern{{ sequence.id }}')" style="color: rgb(21, 0, 255);">{{ sequence.name }}</a></b></div>
+                                <div class="rgbframe-strip-sequencepattern-text">&nbsp;repeating <b>{{ sequence.times }}</b> times in <b>{{ sequence.speed }}</b> speed</div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
                     <div class="rgbframe-strip-buttons">
-                        <a class="rgbframe-strip-btn addsequence" role="button" hx-get="/rgbframeAddSequence{{ id }}" hx-target="#dialog">Add new sequence</a>
-                        <a class="rgbframe-strip-btn copysequence" role="button" hx-get="/rgbframeCopySequence{{ id }}" hx-target="#dialog">Copy last sequence</a>
-                        <a class="rgbframe-strip-btn delsequence" role="button" onclick="">Clear sequences</a>
+                        <a class="rgbframe-strip-btn addseqpatt" role="button" hx-get="/rgbframeAddSeqPatt{{ id }}" hx-target="#dialog">Add new sequence pattern</a>
+                        <a class="rgbframe-strip-btn createseqpatt" role="button" hx-get="/rgbframeCreateSeqPatt{{ id }}" hx-target="#dialog">Create sequence pattern</a>
+                        <a class="rgbframe-strip-btn delsequence" role="button" onclick="">Clear sequence patterns</a>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %} Painel de Armazenamento Modular {% endblock %}
+
+{% block content %}
+
+<style>
+    .categorias {
+      display: inline-block;
+      padding: 15px 25px;
+      font-size: 24px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      outline: none;
+      color: #fff;
+      background-color: #4cafaa;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 3px #999;
+    }
+    
+    .categorias:hover {background-color: #3e7e8e}
+    
+    .categorias:active {
+      background-color: #3e718e;
+      box-shadow: 0 5px #666;
+      transform: translateY(4px);
+    }
+
+</style>
+
+<nav class="navbar navbar-expand-md navbar-dark fixed-top" style="background-color: #1a8844;">
+    <div class="btnWithSliderEffect" role="home">
+    <a class="navbar-brand" onclick="changePage('/')" role="button">The Diode</a>
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li>
+                <img src="{% static 'core/imagens/Diode.png' %}" style="width:8%;">
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<main role="main">
+
+    <div class="fromRight">
+        <div class="rgbframe-strip-container" id="strip-container">
+            <div class="rgbframe-strip-info-container">
+
+            </div>
+            <div class="rgbframe-strip-rulesequence-container">
+                <div class="rgbframe-strip-sequencepatterngroup-container">
+                    <div class="rgbframe-strip-sequencepatterns-container">
+                        {% for sequence in sequences %}
+                        <div class="rgbframe-strip-patterns-container">
+                            {% for pattern in sequence.patterns %}
+                                <div class="rgbframe-strip-pattern-container">
+                                    <a class="rgbframe-strip-btn copypatt" role="button" hx-get="/rgbframeCopyPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Copy</a>
+                                    <a class="rgbframe-strip-btn editpatt" role="button" hx-get="/rgbframeEditPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Edit</a>
+                                    <a class="rgbframe-strip-btn delpatt" role="button" hx-get="/rgbframeDelPattern{{ id }}/{{ forloop.parentloop.counter0 }}/{{ forloop.counter }}" hx-target="#dialog">Delete</a>
+                                    <div class="rgbframe-strip-pattern-text">LED <b>{{ pattern.L1 }}</b> to LED <b>{{ pattern.L2 }}</b> from color |</div>
+                                    <div class="rgbframe-strip-pattern-color" style="background-color: rgb({{ pattern.ICr }}, {{ pattern.ICg }}, {{ pattern.ICb }});"></div>
+                                    <div class="rgbframe-strip-pattern-text">| to |</div>
+                                    <div class="rgbframe-strip-pattern-color" style="background-color: rgb({{ pattern.TCr }}, {{ pattern.TCg }}, {{ pattern.TCb }});"></div>
+                                    <div class="rgbframe-strip-pattern-text">| in <b>{{ pattern.T }}</b> times</div>
+                                </div>
+                            {% endfor %}
+                            <a class="rgbframe-strip-btn addpatt" role="button" hx-get="/rgbframeAddPattern{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Add</a>
+                            <a class="rgbframe-strip-btn massedit" role="button" hx-get="/rgbframeEditSequence{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Edit all</a>
+                            <a class="rgbframe-strip-btn massdel" role="button" hx-get="/rgbframeDelSequence{{ id }}/{{ forloop.counter0 }}" hx-target="#dialog">Delete all</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="rgbframe-strip-buttons">
+                        <a class="rgbframe-strip-btn addsequence" role="button" hx-get="/rgbframeAddSequence{{ id }}" hx-target="#dialog">Add new sequence</a>
+                        <a class="rgbframe-strip-btn copysequence" role="button" hx-get="/rgbframeCopySequence{{ id }}" hx-target="#dialog">Copy last sequence</a>
+                        <a class="rgbframe-strip-btn delsequence" role="button" onclick="">Clear sequences</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div id="modal" class="modal fade">
+    <div id="dialog" class="modal-dialog" hx-target="this"></div>
+</div>
+
+</main>
+
+<footer class="container">
+    <p><a href="http://tictorslab.blogspot.com/" role="button">&copy; Tictor's Lab 2021 &raquo;</a></p>
+</footer>
+{% endblock %}

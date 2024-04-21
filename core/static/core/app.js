@@ -1,7 +1,7 @@
 gsap.registerPlugin(Flip); // Flip between css classes with animation
 let home_url = ""
 
-// Cookie functions
+// Cookie and other functions
 function eraseCookie(name) {   
     document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
@@ -43,18 +43,24 @@ function reload_element(id){
     var content = container.innerHTML;
     container.innerHTML= content; 
 }
+function reloadPage(){
+    sleep(750).then(() => {
+        location.reload(); });
+}
 function reload_page(){
     sleep(100).then(() => {
         location.reload(); });
 }
-// ------------------
-// Change page delay
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+function changePageFast(url){
+    sleep(100).then(() => {
+        document.location=url; });
 }
 function changePage(url) {
     sleep(750).then(() => {
     document.location=url; });
+}
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 // ------------------
 // ============ GSAP animations ============
@@ -852,9 +858,12 @@ if (submitEffectBtn) {
     });
 }
 
-// ------------------
-
-const modal = new bootstrap.Modal(document.getElementById("modal"))
+// -------- RGB Frame pop-ups for creating patterns --------
+try {
+    const modal = new bootstrap.Modal(document.getElementById("modal"))
+} catch (e) {
+    console.log("Error loading modal");
+}
 
 htmx.on("htmx:beforeSwap", (e) => {
     // Empty response targeting #dialog => hide the modal
@@ -874,3 +883,17 @@ htmx.on("htmx:afterSwap", (e) => {
 htmx.on("hidden.modal", () => {
     document.getElementById("dialog").innerHTML = ""
 })
+
+// -------- Project page collapsible --------
+var project_collapse_button = document.getElementsByClassName("project-collapse-button")
+var i
+for (i=0;i<project_collapse_button.length;i++){
+    project_collapse_button[i].addEventListener("click", function() {
+        var content = this.nextElementSibling
+        if (content.style.display == "block") {
+            content.style.display = "none"
+        } else {
+            content.style.display = "block"
+        }
+    })
+}

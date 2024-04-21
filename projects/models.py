@@ -5,9 +5,9 @@ from django.db import models
 class RGBFrame(models.Model):
     name = models.CharField(max_length=200, null=True, unique=True)
     # RGB Frame - Outputs
-    rgb_strip = models.JSONField(blank=True, null=True, verbose_name="(Output) RGB strip")
+    rgb_strip = models.JSONField(blank=True, null=True, verbose_name="(Output) Sequence patterns combination (json)")
     # Painel - Properties
-    current_sequence = models.PositiveIntegerField(default=0)
+    current_sequences = models.PositiveIntegerField(default=0)
     # RGB Frame - Interface connections panel
     grid_row = models.PositiveIntegerField(blank=True, null=True)
     grid_col = models.PositiveIntegerField(blank=True, null=True)

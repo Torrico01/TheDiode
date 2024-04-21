@@ -6,16 +6,19 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from datetime import datetime
 from django.apps import apps
+from importlib import reload
 
 from core.config_variables import *
 from components.models import *
 from projects.models import *
+from storage.models import *
 from .forms import *
 
-import json, time, math
+import json, time, math, sys
 
 esp8266_ip = "192.168.15.17"
 delayForSliderAnimation = 0.7
+sequencepattern_type = 0
 
 def visitor_ip_address(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -352,6 +355,13 @@ def painelDeArmazenamentoModular_contextMsg(request):
         criar_painel_msg = 0
     return criar_painel_msg
 
+# --> Cyan converter
+# -----------------------
+def cyan_converter(request):
+    context = {}
+    return render(request, 'core/cyanConverter/home.html', context)
+
+
 # --> RGB Frame functions
 # -----------------------
 def hex_to_rgb(hex):
@@ -360,7 +370,7 @@ def hex_to_rgb(hex):
 def rgb_to_hex(r, g, b):
     return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
-def rgbframe_copy_pattern(request, id, seq_id, patt_id):
+def rgbframe_copy_pattern(request, seqpatt_id, seq_id, patt_id):
     if request.method == "POST":
         form = RGBFrameAddSequenceForm(request.POST) # Same form as new sequence
         L1 = form['L1'].value()
@@ -371,7 +381,7 @@ def rgbframe_copy_pattern(request, id, seq_id, patt_id):
         TupleColor1 = hex_to_rgb(Color1[1:])
         TupleColor2 = hex_to_rgb(Color2[1:])
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Count patterns in sequence
         count = len(full_json[str(seq_id)])
@@ -388,6 +398,7 @@ def rgbframe_copy_pattern(request, id, seq_id, patt_id):
         # Append to full json
         full_json[str(seq_id)][str(count)] = pattern
         full_json[str(seq_id)]["Total"] = count
+        full_json[str(seq_id)]["Type"] = sequencepattern_type
         if form.is_valid():
             # Update json value in database
             rgbframe_obj.rgb_strip = full_json
@@ -397,7 +408,7 @@ def rgbframe_copy_pattern(request, id, seq_id, patt_id):
     else:
         form = RGBFrameAddSequenceForm()
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Get values from current pattern
         pattern_json = full_json[str(seq_id)][str(patt_id)]
@@ -410,7 +421,7 @@ def rgbframe_copy_pattern(request, id, seq_id, patt_id):
                'type': 'copy'}
     return render(request, 'core/rgbframeAddSequence.html', context)
 
-def rgbframe_edit_pattern(request, id, seq_id, patt_id):
+def rgbframe_edit_pattern(request, seqpatt_id, seq_id, patt_id):
     if request.method == "POST":
         form = RGBFrameAddSequenceForm(request.POST) # Same form as new sequence
         L1 = form['L1'].value()
@@ -421,7 +432,7 @@ def rgbframe_edit_pattern(request, id, seq_id, patt_id):
         TupleColor1 = hex_to_rgb(Color1[1:])
         TupleColor2 = hex_to_rgb(Color2[1:])
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Build pattern to sequence
         pattern = {"L1": L1,
@@ -444,7 +455,7 @@ def rgbframe_edit_pattern(request, id, seq_id, patt_id):
     else:
         form = RGBFrameAddSequenceForm()
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Get values from current pattern
         pattern_json = full_json[str(seq_id)][str(patt_id)]
@@ -457,10 +468,10 @@ def rgbframe_edit_pattern(request, id, seq_id, patt_id):
                'type': 'edit'}
     return render(request, 'core/rgbframeAddSequence.html', context)
 
-def rgbframe_del_pattern(request, id, seq_id, patt_id):
+def rgbframe_del_pattern(request, seqpatt_id, seq_id, patt_id):
     if request.method == "POST":
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         if (full_json[str(seq_id)]["Total"] == 1): # Delete pattern and sequence
             del full_json[str(seq_id)]
@@ -470,10 +481,10 @@ def rgbframe_del_pattern(request, id, seq_id, patt_id):
         else:
             del full_json[str(seq_id)][str(patt_id)] # Delete pattern
             # Update pattern numbers on the sequence
-            for patt in range(patt_id, len(full_json[str(seq_id)])):
+            for patt in range(patt_id, len(full_json[str(seq_id)])-1):
                 full_json[str(seq_id)][str(patt)] = full_json[str(seq_id)].pop(str(patt+1))
             # Update total
-            full_json[str(seq_id)]["Total"] = len(full_json[str(seq_id)])-1        
+            full_json[str(seq_id)]["Total"] = len(full_json[str(seq_id)])-2
         # Save updated json
         rgbframe_obj.rgb_strip = full_json
         rgbframe_obj.save()
@@ -481,7 +492,7 @@ def rgbframe_del_pattern(request, id, seq_id, patt_id):
     context = {'type': 'del'}
     return render(request, 'core/rgbframeDelPattern.html', context)
 
-def rgbframe_add_pattern(request, id, seq_id):
+def rgbframe_add_pattern(request, seqpatt_id, seq_id):
     if request.method == "POST":
         form = RGBFrameAddSequenceForm(request.POST) # Same form as new sequence
         L1 = form['L1'].value()
@@ -492,7 +503,7 @@ def rgbframe_add_pattern(request, id, seq_id):
         TupleColor1 = hex_to_rgb(Color1[1:])
         TupleColor2 = hex_to_rgb(Color2[1:])
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Count patterns in sequence
         count = len(full_json[str(seq_id)])
@@ -507,8 +518,9 @@ def rgbframe_add_pattern(request, id, seq_id):
                 "TCg": TupleColor2[1],
                 "TCb": TupleColor2[2]}
         # Append to full json
-        full_json[str(seq_id)][str(count)] = pattern
+        full_json[str(seq_id)][str(count-1)] = pattern
         full_json[str(seq_id)]["Total"] = count
+        full_json[str(seq_id)]["Type"] = sequencepattern_type
         if form.is_valid():
             # Update json value in database
             rgbframe_obj.rgb_strip = full_json
@@ -521,7 +533,7 @@ def rgbframe_add_pattern(request, id, seq_id):
                'type': 'pattern'}
     return render(request, 'core/rgbframeAddSequence.html', context)
 
-def rgbframe_edit_sequence(request, id, seq_id):
+def rgbframe_edit_sequence(request, seqpatt_id, seq_id):
     if request.method == "POST":
         form = RGBFrameEditSequenceForm(request.POST) # Same form as new sequence
         T = form['T'].value()
@@ -530,12 +542,12 @@ def rgbframe_edit_sequence(request, id, seq_id):
         TupleColor1 = hex_to_rgb(Color1[1:])
         TupleColor2 = hex_to_rgb(Color2[1:])
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         pattern_json = full_json[str(seq_id)]["1"]
         # Append to full json
         for patt in full_json[str(seq_id)]:
-            if (patt != "Total"):
+            if (patt != "Total" and patt != "Type"):
                 # Check if values changed
                 OldTupleColor1 = (pattern_json["ICr"], pattern_json["ICg"], pattern_json["ICb"])
                 OldTupleColor2 = (pattern_json["TCr"], pattern_json["TCg"], pattern_json["TCb"])
@@ -568,7 +580,7 @@ def rgbframe_edit_sequence(request, id, seq_id):
     else:
         form = RGBFrameEditSequenceForm()
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Get values from current pattern
         pattern_json = full_json[str(seq_id)]["1"]
@@ -579,10 +591,10 @@ def rgbframe_edit_sequence(request, id, seq_id):
                'type': 'edit all'}
     return render(request, 'core/rgbframeAddSequence.html', context)
 
-def rgbframe_del_sequence(request, id, seq_id):
+def rgbframe_del_sequence(request, seqpatt_id, seq_id):
     if request.method == "POST":
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Delete sequence
         del full_json[str(seq_id)]
@@ -596,7 +608,7 @@ def rgbframe_del_sequence(request, id, seq_id):
     context = {'type': 'del seq'}
     return render(request, 'core/rgbframeDelPattern.html', context)
 
-def rgbframe_add_sequence(request, id):
+def rgbframe_add_sequence(request, seqpatt_id):
     if request.method == "POST":
         form = RGBFrameAddSequenceForm(request.POST)
         L1 = form['L1'].value()
@@ -607,12 +619,13 @@ def rgbframe_add_sequence(request, id):
         TupleColor1 = hex_to_rgb(Color1[1:])
         TupleColor2 = hex_to_rgb(Color2[1:])
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Count sequences in json
         count = len(full_json)
         # Add single pattern to new sequence
-        pattern = {"Total": 1}
+        pattern = {"Total": 1,
+                   "Type": sequencepattern_type}
         pattern["1"] = {"L1": L1,
                         "L2": L2,
                         "T": T,
@@ -636,10 +649,10 @@ def rgbframe_add_sequence(request, id):
                'type': 'sequence'}
     return render(request, 'core/rgbframeAddSequence.html', context)
 
-def rgbframe_copy_sequence(request, id):
+def rgbframe_copy_sequence(request, seqpatt_id):
     if request.method == "POST":
         # Get json from RGB Frame project
-        rgbframe_obj = RGBFrame.objects.get(id=id)
+        rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
         full_json = rgbframe_obj.rgb_strip
         # Get last sequence and add to end
         last_sequence = full_json[str(len(full_json)-1)]
@@ -648,20 +661,138 @@ def rgbframe_copy_sequence(request, id):
         # Save updated json
         rgbframe_obj.rgb_strip = full_json
         rgbframe_obj.save()
-
     context = {'type': 'copy'}
     return render(request, 'core/rgbframeDelPattern.html', context)
 
-def rgbframe_explore(request, id):
-    rgbframe_obj = RGBFrame.objects.get(id=id)
+def rgbframe_edit_sequencepattern(request, frame_id, seqpatt_id):
+    if request.method == "POST":
+        form = RGBFrameAddSeqPattForm(request.POST) # Same form as new sequence
+        name = form['name'].value()
+        times = form['times'].value()
+        speed = form['speed'].value()
+        # Get json from RGB Frame project
+        rgbframeseq_obj = RGBFrameSequences.objects.get(name=name)
+        seq_id = rgbframeseq_obj.id
+        seqpatt_rgbstrip = rgbframeseq_obj.rgb_strip
+        rgbframe_obj = RGBFrame.objects.get(id=frame_id)
+        full_json = rgbframe_obj.rgb_strip
+        # Build pattern to sequence
+        pattern = {'id': seq_id,
+                   'times': times,
+                   'speed': speed}
+        full_json[str(seqpatt_id)] = pattern
+        if form.is_valid():
+            # Update json value in database
+            rgbframe_obj.rgb_strip = full_json
+            rgbframe_obj.save()
+            if(seqpatt_rgbstrip["0"]["Type"] == 1):
+                seqpatt_rgbstrip["0"]["times"] = times
+                rgbframeseq_obj.rgb_strip = seqpatt_rgbstrip
+                rgbframeseq_obj.save()
+            # Return http response
+            return HttpResponseRedirect('')
+    form = RGBFrameAddSeqPattForm()
+    # Get json from RGB Frame project
+    rgbframe_obj = RGBFrame.objects.get(id=frame_id)
+    full_json = rgbframe_obj.rgb_strip
+    # Get values from current pattern
+    seqpatt_json = full_json[str(seqpatt_id)]
+    seqpatt_id = seqpatt_json["id"]
+    rgbframeseq_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
+    form.fields["name"].initial = rgbframeseq_obj.name
+    form.fields["times"].initial = seqpatt_json["times"]
+    form.fields["speed"].initial = seqpatt_json["speed"]
+    context = {'form': form,
+               'type': 'edit seqpatt'}
+    return render(request, 'core/rgbframeAddSequence.html', context)
+
+def rgbframe_del_sequencepattern(request, frame_id, seqpatt_id):
+    if request.method == "POST":
+        # Get json from RGB Frame project
+        rgbframe_obj = RGBFrame.objects.get(id=frame_id)
+        full_json = rgbframe_obj.rgb_strip
+        # Delete sequence pattern
+        del full_json[str(seqpatt_id)]
+        # Update sequence numbers on the json
+        for seq in range(seqpatt_id, len(full_json)):
+            full_json[str(seq)] = full_json.pop(str(seq+1))
+        # Save updated json
+        rgbframe_obj.rgb_strip = full_json
+        rgbframe_obj.save()
+    # Returns
+    context = {'type': 'del seqpatt'}
+    return render(request, 'core/rgbframeDelPattern.html', context)
+
+def rgbframe_add_sequencepattern(request, frame_id):
+    if request.method == "POST":
+        form = RGBFrameAddSeqPattForm(request.POST)
+        times = form['times'].value()
+        speed = form['speed'].value()
+        name = form['name'].value()
+        # Get json from RGB Frame project to get id
+        rgbframeseq_obj = RGBFrameSequences.objects.get(name=name)
+        seqpatt_id = rgbframeseq_obj.id
+        seqpatt_rgbstrip = rgbframeseq_obj.rgb_strip
+        # Append to sequence patterns combination json
+        rgbframe_obj = RGBFrame.objects.get(id=frame_id)
+        full_json = rgbframe_obj.rgb_strip
+        # Count sequences in json
+        count = len(full_json)
+        # Add seqpatt to new comination
+        full_json[str(count)] = {"id": seqpatt_id,
+                                 "times": times,
+                                 "speed": speed}
+        # Save in db
+        if form.is_valid():
+            # Update json value in database
+            rgbframe_obj.rgb_strip = full_json
+            rgbframe_obj.save()
+            if(seqpatt_rgbstrip["0"]["Type"] == 1):
+                seqpatt_rgbstrip["0"]["times"] = times
+                rgbframeseq_obj.rgb_strip = seqpatt_rgbstrip
+                rgbframeseq_obj.save()
+            # Return http response
+            return HttpResponseRedirect('')
+    #from .forms import RGBFrameAddSeqPattForm
+    form = RGBFrameAddSeqPattForm()
+    context = {'form': form,
+            'type': 'seqpatt'}
+    return render(request, 'core/rgbframeAddSequence.html', context)
+
+def rgbframe_create_sequencepattern(request, frame_id):
+    if request.method == "POST":
+        form = RGBFrameCreateSeqPattForm(request.POST)
+        if form.is_valid():
+            # Get value from form and save new entity in db
+            new_sequence = RGBFrameSequences()
+            new_sequence.name = form['name'].value()
+            new_sequence.rgb_strip = {}
+            new_sequence.save()
+            # Get new entity id
+            new_id = RGBFrameSequences.objects.get(name=new_sequence.name).id
+            # Return http response
+            return redirect('/rgbframe/explore'+str(frame_id)+'/sequencepattern'+str(new_id))
+    form = RGBFrameCreateSeqPattForm()
+    dud_sequence = RGBFrameSequences() # Create a dud sequence to get id to be created
+    dud_sequence.name = 'delete'
+    dud_sequence.rgb_strip = {}
+    dud_sequence.save()
+    seqpatt_id = RGBFrameSequences.objects.get(name=dud_sequence.name).id + 1
+    dud_sequence.delete()
+    context = {'form': form,
+               'frame_id': frame_id,
+               'seqpatt_id': seqpatt_id}
+    return render(request, 'core/rgbframeCreateSeqPatt.html', context)
+
+def rgbframe_explore_sequencepattern(request, frame_id, seqpatt_id):
+    rgbframe_obj = RGBFrameSequences.objects.get(id=seqpatt_id)
     full_json = rgbframe_obj.rgb_strip
     sequences_array = []
-    rules_array = []
     for sequence_num in full_json:
         sequence = full_json[sequence_num]
         pattern_array = []
         for pattern_num in sequence:
-            if pattern_num != 'Total':
+            if pattern_num != 'Total' and pattern_num != 'Type' and pattern_num != 'times':
                 pattern = full_json[sequence_num][pattern_num]
                 pattern_array.append(RGBFramePattern(pattern_num,
                                                      pattern['L1'],
@@ -676,14 +807,41 @@ def rgbframe_explore(request, id):
         sequences_array.append(RGBFrameSequence(sequence_num,
                                                 pattern_array))
     context = {'sequences': sequences_array,
+               'id': seqpatt_id}
+    return render(request, 'core/rgbframeSequencePattern.html', context)
+
+def rgbframe_explore(request, frame_id):
+    rgbframe_obj = RGBFrame.objects.get(id=frame_id)
+    full_json = rgbframe_obj.rgb_strip
+    sequences_array = []
+    rules_array = []
+    for sequences_num in full_json:
+        sequences_config = full_json[sequences_num]
+        sequences_id = sequences_config['id']
+        sequences_object = RGBFrameSequences.objects.get(id=sequences_id)
+        sequences_name = sequences_object.name
+        sequences_array.append(RGBFrameSequencePattern(sequences_id,
+                                                sequences_num,
+                                                sequences_name,
+                                                sequences_config['times'],
+                                                sequences_config['speed']))
+    context = {'sequences': sequences_array,
                'rules': rules_array,
-               'id': id}
+               'id': frame_id}
     return render(request, 'core/rgbframeExplore.html', context)
 
 def rgbframe(request):
     rgbframe_all = RGBFrame.objects.all()
     context = {'rgbframe_all': rgbframe_all}
     return render(request, 'core/rgbframe.html', context)
+
+class RGBFrameSequencePattern( object ):
+    def __init__( self, id, num , name, times, speed ):
+        self.id = id
+        self.num = num
+        self.name = name
+        self.times = times
+        self.speed = speed
 
 class RGBFrameSequence( object ):
    def __init__( self, num, pattern_array ):
